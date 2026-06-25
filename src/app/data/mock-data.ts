@@ -8,7 +8,7 @@ import {
   Comentario,
   RutaHistorial,
   Lugar
-} from "../models/transit.models";
+} from "../core/models/transit.models";
 
 // ============================================================
 export const SINDICATOS_MOCK: Sindicato[] = [
