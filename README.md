@@ -1,59 +1,171 @@
-# ComollegoAngular
+# 🗺️ Comollego - Transporte Público en Bolivia
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.4.
+Aplicación web para visualizar y colaborar en rutas de transporte público en Bolivia. Los usuarios pueden ver líneas de minibuses, trufis, teleférico y micros, así como agregar nuevos lugares y reportar incidentes.
 
-## Development server
+---
 
-To start a local development server, run:
+## 🚀 Tecnologías
 
-```bash
-ng serve
-```
+| Tecnología | Versión | Propósito |
+|------------|---------|-----------|
+| **Angular** | v17+ | Framework frontend |
+| **PrimeNG** | v17+ | Componentes UI |
+| **PrimeIcons** | v6+ | Iconos |
+| **Leaflet** | v1.9+ | Mapas interactivos |
+| **TypeScript** | v5+ | Lenguaje principal |
+| **Google Identity Services** | - | Login con Google |
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+## 📂 Estructura del Proyecto
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+src/
+├── app/
+│ ├── core/ # Núcleo de la aplicación
+│ │ ├── auth/ # Autenticación
+│ │ │ ├── auth.service.ts # Login/logout, estado del usuario
+│ │ │ ├── auth.guard.ts # Protege rutas
+│ │ │ ├── auth.interceptor.ts # Agrega token a peticiones HTTP
+│ │ │ └── login/ # Componente de login
+│ │ │ ├── login.component.ts
+│ │ │ ├── login.component.html
+│ │ │ └── login.component.css
+│ │ ├── models/ # Modelos y tipos
+│ │ │ └── transit.models.ts
+│ │ └── services/ # Servicios globales
+│ │ ├── route.service.ts # CRUD de rutas
+│ │ ├── gamification.service.ts # Puntos y niveles
+│ │ └── simulation.service.ts # Simulación de viajes
+│ │
+│ ├── features/ # Características principales
+│ │ ├── map/ # Componente del mapa
+│ │ │ ├── map.component.ts
+│ │ │ ├── map.component.html
+│ │ │ └── map.component.css
+│ │ └── routes/ # Gestión de rutas
+│ │ ├── route-details/ # Card de detalles de ruta
+│ │ ├── route-editor/ # Editor de rutas
+│ │ └── route-list/ # Lista de rutas
+│ │
+│ ├── layouts/ # Layouts de la aplicación
+│ │ ├── main-layout/ # Layout principal (con mapa)
+│ │ └── auth-layout/ # Layout de login (sin mapa)
+│ │
+│ ├── shared/ # Componentes reutilizables
+│ │ ├── components/ # Componentes compartidos
+│ │ │ ├── floating-buttons/ # Botones flotantes (Líneas, App, Devs)
+│ │ │ ├── user-profile/ # Modal de perfil de usuario
+│ │ │ ├── lugar-search/ # Buscador de lugares
+│ │ │ ├── line-search/ # Buscador de líneas
+│ │ │ ├── app-dialog/ # Modal de descarga de app
+│ │ │ └── dev-dialog/ # Modal de desarrolladores
+│ │ ├── directives/ # Directivas reutilizables
+│ │ ├── pipes/ # Pipes reutilizables
+│ │ └── shared.module.ts # Módulo compartido
+│ │
+│ ├── data/ # Datos mock
+│ │ └── mock-data.ts
+│ │
+│ ├── app.component.ts # Componente raíz (contenedor)
+│ ├── app.component.html
+│ ├── app.component.css
+│ ├── app.config.ts # Configuración de la app
+│ └── app.routes.ts # Rutas de la aplicación
+│
+├── environments/ # Variables de entorno
+│ ├── environment.ts # Desarrollo
+│ └── environment.prod.ts # Producción
+│
+├── index.html # Punto de entrada HTML
+├── main.ts # Bootstrap de la app
+└── styles.css # Estilos globales
 
-```bash
-ng generate component component-name
-```
+---
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🔄 Flujo de Autenticación
 
-```bash
-ng generate --help
-```
+Usuario abre la app
+↓
 
-## Building
+AuthGuard verifica si está logueado
+↓
 
-To build the project run:
+Si NO → Redirige a /login (LoginComponent)
+↓
 
-```bash
-ng build
-```
+Usuario hace clic en "Iniciar sesión con Google"
+↓
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Google devuelve token JWT
+↓
 
-## Running unit tests
+Frontend decodifica el token → obtiene { sub, email, name, picture }
+↓
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Envía al backend: POST /api/auth/google
+↓
 
-```bash
-ng test
-```
+Backend guarda/actualiza usuario y devuelve { token: "jwt", user: {...} }
+↓
 
-## Running end-to-end tests
+Frontend guarda en localStorage:
 
-For end-to-end (e2e) testing, run:
+    auth_token → JWT del backend
 
-```bash
-ng e2e
-```
+    user → { id, name, email, picture }
+    ↓
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Redirige a la página principal (/)
+↓
 
-## Additional Resources
+AuthInterceptor agrega el token a todas las peticiones HTTP
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
+
+## 🗺️ Componentes Principales
+
+### 1. **MainLayout** (`layouts/main-layout/`)
+
+- Contiene el mapa y todos los componentes principales
+- Gestiona el estado del mapa (polyline, stops, color)
+- Maneja los modales (perfil, líneas, app, desarrolladores)
+- Buscador de lugares con sugerencias (como Google)
+
+### 2. **Login** (`core/auth/login/`)
+
+- Pantalla de inicio de sesión con Google
+- Muestra spinner mientras se autentica
+- Muestra mensajes de error
+
+### 3. **Map** (`features/map/`)
+
+- Renderiza el mapa con Leaflet
+- Muestra polyline (ruta) y paradas
+- Modo edición (arrastrar puntos, agregar paradas)
+- Modo visualización (ver rutas)
+
+### 4. **RouteDetails** (`features/routes/route-details/`)
+
+- Card con información detallada de la ruta
+- Muestra paradas (ida/vuelta)
+- Comentarios y calificaciones
+- Historial de versiones
+
+### 5. **RouteEditor** (`features/routes/route-editor/`)
+
+- Editor de rutas (crear/editar)
+- Selector de color
+- Gestión de paradas (agregar/eliminar)
+- Cambio de dirección (ida/vuelta)
+
+---
+
+## 🔐 Variables de Entorno
+
+### `environments/environment.ts` (Desarrollo)
+
+export const environment = {
+  production: false,
+  googleClientId: 'TU_CLIENT_ID.apps.googleusercontent.com',
+  apiUrl: 'http://localhost:8080/api'
+};
