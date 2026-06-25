@@ -1,0 +1,118 @@
+<div class="route-list-container">
+  
+  <!-- Buscador -->
+  <div class="search-section">
+    <div class="search-input-wrapper">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar ruta por nombre..."
+        [value]="searchValue"
+        (input)="onSearchChange($any($event.target).value)"
+        class="search-input"
+      />
+      @if (searchValue) {
+        <button class="search-clear" (click)="onSearchChange('')">
+          <i class="pi pi-times"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Filtros de Tipo de Transporte -->
+    <div class="filter-chips">
+      <button 
+        (click)="onTipoChange(undefined)" 
+        [class.active]="routeService.filters().tipoTransporteId === undefined" 
+        class="chip">
+        Todos
+      </button>
+      @for (tipo of tiposTransporte; track tipo.id) {
+        <button 
+          (click)="onTipoChange(tipo.id)" 
+          [class.active]="routeService.filters().tipoTransporteId === tipo.id" 
+          class="chip">
+          {{ tipo.nombre }}
+        </button>
+      }
+    </div>
+
+    <!-- Filtro de Estado (opcional) -->
+    <div class="filter-chips estado-chips">
+      @for (estado of estados; track estado) {
+        <button 
+          (click)="onEstadoChange(estado)" 
+          [class.active]="routeService.filters().estado === estado" 
+          class="chip chip-estado">
+          {{ estado === 'todos' ? 'Todos' : (estado | titlecase) }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Contador y Crear -->
+  <div class="counter-row">
+    <span class="count-label">Líneas: <b>{{ filteredRoutes().length }}</b></span>
+    <button pButton icon="pi pi-plus" label="Nueva Ruta" (click)="routeService.startCreating()" severity="info" class="p-button-sm p-button-rounded"></button>
+  </div>
+
+  <!-- Lista de Rutas -->
+  <div class="scroll-area">
+    @if (filteredRoutes().length === 0) {
+      <!-- Estado vacío -->
+      <div class="empty-state">
+        <i class="pi pi-search" style="font-size: 2rem; color: #cbd5e1;"></i>
+        <p class="empty-title">No se encontraron líneas</p>
+        <p class="empty-subtitle">Intenta otro nombre o tipo de transporte</p>
+        @if (searchValue.trim().length > 0) {
+          <button class="register-btn" (click)="routeService.startCreating()">
+            <i class="pi pi-plus"></i>
+            Registrar "{{ searchValue }}" como nueva ruta
+          </button>
+        }
+      </div>
+    } @else {
+      @for (route of filteredRoutes().slice(0, visibleCount()); track route.id) {
+        <div class="route-card" [class.selected]="route.id === routeService.selectedRouteId()" (click)="routeService.selectRoute(route.id)">
+          <div class="card-header">
+            <span class="route-badge" [style.backgroundColor]="route.color">
+              {{ route.id }}
+            </span>
+            <span class="type-tag">{{ getTransitName(route) }}</span>
+            <span class="estado-tag" [class]="getEstadoClass(route.estado)">
+              {{ route.estado }}
+            </span>
+          </div>
+          <h3 class="route-name">{{ route.nombreRuta }}</h3>
+          <div class="card-stats">
+            <span><i class="pi pi-map-marker"></i> {{ route.distanciaKm }} km</span>
+            <span>•</span>
+            <span><i class="pi pi-clock"></i> {{ route.duracionMin }} min</span>
+            <span>•</span>
+            <span><i class="pi pi-map"></i> {{ (route.paradas?.length || 0) }} paradas</span>
+            @if (route.sindicatoNombre) {
+              <span>•</span>
+              <span><i class="pi pi-building"></i> {{ route.sindicatoNombre }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      @if (filteredRoutes().length > visibleCount()) {
+        <button class="load-more" (click)="loadMore()">
+          Ver más ({{ filteredRoutes().length - visibleCount() }} restantes)
+        </button>
+      }
+
+      <!-- Siempre mostrar opción de registrar nueva al final -->
+      <div class="register-footer">
+        <button class="register-btn-outline" (click)="routeService.startCreating()">
+          <i class="pi pi-plus"></i>
+          ¿No ves tu línea habitual? Regístrala aquí
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="footer-brand">Transit Control · Hub La Paz</div>
+</div>
