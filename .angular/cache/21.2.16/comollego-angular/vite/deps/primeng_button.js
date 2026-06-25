@@ -1,24 +1,13 @@
 import {
-  Badge,
-  BadgeModule
-} from "./chunk-ZCLGMD6L.js";
-import {
-  Fluid
-} from "./chunk-Y6M6PYDU.js";
-import {
   BaseComponent,
+  Bind,
+  BindModule,
+  Fluid,
   PARENT_INSTANCE
-} from "./chunk-HFBAPJZ3.js";
-import {
-  Bind
-} from "./chunk-RSFCTRG5.js";
+} from "./chunk-Y3Z4P6XP.js";
 import {
   BaseStyle
-} from "./chunk-JESYBMCZ.js";
-import {
-  PrimeTemplate,
-  SharedModule
-} from "./chunk-BJVFHHSE.js";
+} from "./chunk-VR2BPJGT.js";
 import {
   C,
   E,
@@ -27,21 +16,26 @@ import {
   M,
   Nt,
   P,
+  PrimeTemplate,
+  SharedModule,
   Tt,
   Z,
   _,
   f,
+  k2 as k,
   l,
   q,
-  s2 as s
-} from "./chunk-UDQJXTLA.js";
+  s,
+  s2
+} from "./chunk-MDNSH4JF.js";
 import {
   CommonModule,
   NgIf,
   NgStyle,
   NgTemplateOutlet,
   isPlatformBrowser
-} from "./chunk-3XEONYNV.js";
+} from "./chunk-ZBDJZCZZ.js";
+import "./chunk-M4ZU72CR.js";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -103,6 +97,7 @@ import {
   ɵɵpureFunction2,
   ɵɵqueryAdvance,
   ɵɵqueryRefresh,
+  ɵɵstyleProp,
   ɵɵtemplate,
   ɵɵtext,
   ɵɵtextInterpolate
@@ -399,63 +394,63 @@ var DomHandler = class _DomHandler {
   }
   static matches(element, selector) {
     var p = Element.prototype;
-    var f2 = p["matches"] || p.webkitMatchesSelector || p["mozMatchesSelector"] || p["msMatchesSelector"] || function(s2) {
-      return [].indexOf.call(document.querySelectorAll(s2), this) !== -1;
+    var f2 = p["matches"] || p.webkitMatchesSelector || p["mozMatchesSelector"] || p["msMatchesSelector"] || function(s3) {
+      return [].indexOf.call(document.querySelectorAll(s3), this) !== -1;
     };
     return f2.call(element, selector);
   }
   static getOuterWidth(el, margin) {
     let width = el.offsetWidth;
     if (margin) {
-      let style4 = getComputedStyle(el);
-      width += parseFloat(style4.marginLeft) + parseFloat(style4.marginRight);
+      let style6 = getComputedStyle(el);
+      width += parseFloat(style6.marginLeft) + parseFloat(style6.marginRight);
     }
     return width;
   }
   static getHorizontalPadding(el) {
-    let style4 = getComputedStyle(el);
-    return parseFloat(style4.paddingLeft) + parseFloat(style4.paddingRight);
+    let style6 = getComputedStyle(el);
+    return parseFloat(style6.paddingLeft) + parseFloat(style6.paddingRight);
   }
   static getHorizontalMargin(el) {
-    let style4 = getComputedStyle(el);
-    return parseFloat(style4.marginLeft) + parseFloat(style4.marginRight);
+    let style6 = getComputedStyle(el);
+    return parseFloat(style6.marginLeft) + parseFloat(style6.marginRight);
   }
   static innerWidth(el) {
     let width = el.offsetWidth;
-    let style4 = getComputedStyle(el);
-    width += parseFloat(style4.paddingLeft) + parseFloat(style4.paddingRight);
+    let style6 = getComputedStyle(el);
+    width += parseFloat(style6.paddingLeft) + parseFloat(style6.paddingRight);
     return width;
   }
   static width(el) {
     let width = el.offsetWidth;
-    let style4 = getComputedStyle(el);
-    width -= parseFloat(style4.paddingLeft) + parseFloat(style4.paddingRight);
+    let style6 = getComputedStyle(el);
+    width -= parseFloat(style6.paddingLeft) + parseFloat(style6.paddingRight);
     return width;
   }
   static getInnerHeight(el) {
     let height = el.offsetHeight;
-    let style4 = getComputedStyle(el);
-    height += parseFloat(style4.paddingTop) + parseFloat(style4.paddingBottom);
+    let style6 = getComputedStyle(el);
+    height += parseFloat(style6.paddingTop) + parseFloat(style6.paddingBottom);
     return height;
   }
   static getOuterHeight(el, margin) {
     let height = el.offsetHeight;
     if (margin) {
-      let style4 = getComputedStyle(el);
-      height += parseFloat(style4.marginTop) + parseFloat(style4.marginBottom);
+      let style6 = getComputedStyle(el);
+      height += parseFloat(style6.marginTop) + parseFloat(style6.marginBottom);
     }
     return height;
   }
   static getHeight(el) {
     let height = el.offsetHeight;
-    let style4 = getComputedStyle(el);
-    height -= parseFloat(style4.paddingTop) + parseFloat(style4.paddingBottom) + parseFloat(style4.borderTopWidth) + parseFloat(style4.borderBottomWidth);
+    let style6 = getComputedStyle(el);
+    height -= parseFloat(style6.paddingTop) + parseFloat(style6.paddingBottom) + parseFloat(style6.borderTopWidth) + parseFloat(style6.borderBottomWidth);
     return height;
   }
   static getWidth(el) {
     let width = el.offsetWidth;
-    let style4 = getComputedStyle(el);
-    width -= parseFloat(style4.paddingLeft) + parseFloat(style4.paddingRight) + parseFloat(style4.borderLeftWidth) + parseFloat(style4.borderRightWidth);
+    let style6 = getComputedStyle(el);
+    width -= parseFloat(style6.paddingLeft) + parseFloat(style6.paddingRight) + parseFloat(style6.borderLeftWidth) + parseFloat(style6.borderRightWidth);
     return width;
   }
   static getViewport() {
@@ -533,8 +528,8 @@ var DomHandler = class _DomHandler {
   }
   static calculateScrollbarWidth(el) {
     if (el) {
-      let style4 = getComputedStyle(el);
-      return el.offsetWidth - el.clientWidth - parseFloat(style4.borderLeftWidth) - parseFloat(style4.borderRightWidth);
+      let style6 = getComputedStyle(el);
+      return el.offsetWidth - el.clientWidth - parseFloat(style6.borderLeftWidth) - parseFloat(style6.borderRightWidth);
     } else {
       if (this.calculatedScrollbarWidth !== null)
         return this.calculatedScrollbarWidth;
@@ -885,6 +880,637 @@ var AutoFocusModule = class _AutoFocusModule {
     args: [{
       imports: [AutoFocus],
       exports: [AutoFocus]
+    }]
+  }], null, null);
+})();
+
+// node_modules/@primeuix/styles/dist/badge/index.mjs
+var style = "\n    .p-badge {\n        display: inline-flex;\n        border-radius: dt('badge.border.radius');\n        align-items: center;\n        justify-content: center;\n        padding: dt('badge.padding');\n        background: dt('badge.primary.background');\n        color: dt('badge.primary.color');\n        font-size: dt('badge.font.size');\n        font-weight: dt('badge.font.weight');\n        min-width: dt('badge.min.width');\n        height: dt('badge.height');\n    }\n\n    .p-badge-dot {\n        width: dt('badge.dot.size');\n        min-width: dt('badge.dot.size');\n        height: dt('badge.dot.size');\n        border-radius: 50%;\n        padding: 0;\n    }\n\n    .p-badge-circle {\n        padding: 0;\n        border-radius: 50%;\n    }\n\n    .p-badge-secondary {\n        background: dt('badge.secondary.background');\n        color: dt('badge.secondary.color');\n    }\n\n    .p-badge-success {\n        background: dt('badge.success.background');\n        color: dt('badge.success.color');\n    }\n\n    .p-badge-info {\n        background: dt('badge.info.background');\n        color: dt('badge.info.color');\n    }\n\n    .p-badge-warn {\n        background: dt('badge.warn.background');\n        color: dt('badge.warn.color');\n    }\n\n    .p-badge-danger {\n        background: dt('badge.danger.background');\n        color: dt('badge.danger.color');\n    }\n\n    .p-badge-contrast {\n        background: dt('badge.contrast.background');\n        color: dt('badge.contrast.color');\n    }\n\n    .p-badge-sm {\n        font-size: dt('badge.sm.font.size');\n        min-width: dt('badge.sm.min.width');\n        height: dt('badge.sm.height');\n    }\n\n    .p-badge-lg {\n        font-size: dt('badge.lg.font.size');\n        min-width: dt('badge.lg.min.width');\n        height: dt('badge.lg.height');\n    }\n\n    .p-badge-xl {\n        font-size: dt('badge.xl.font.size');\n        min-width: dt('badge.xl.min.width');\n        height: dt('badge.xl.height');\n    }\n";
+
+// node_modules/primeng/fesm2022/primeng-badge.mjs
+var style2 = (
+  /*css*/
+  `
+    ${style}
+
+    /* For PrimeNG (directive)*/
+    .p-overlay-badge {
+        position: relative;
+    }
+
+    .p-overlay-badge > .p-badge {
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        transform: translate(50%, -50%);
+        transform-origin: 100% 0;
+        margin: 0;
+    }
+`
+);
+var classes = {
+  root: ({
+    instance
+  }) => {
+    const value = typeof instance.value === "function" ? instance.value() : instance.value;
+    const size = typeof instance.size === "function" ? instance.size() : instance.size;
+    const badgeSize = typeof instance.badgeSize === "function" ? instance.badgeSize() : instance.badgeSize;
+    const severity = typeof instance.severity === "function" ? instance.severity() : instance.severity;
+    return ["p-badge p-component", {
+      "p-badge-circle": s(value) && String(value).length === 1,
+      "p-badge-dot": l(value),
+      "p-badge-sm": size === "small" || badgeSize === "small",
+      "p-badge-lg": size === "large" || badgeSize === "large",
+      "p-badge-xl": size === "xlarge" || badgeSize === "xlarge",
+      "p-badge-info": severity === "info",
+      "p-badge-success": severity === "success",
+      "p-badge-warn": severity === "warn",
+      "p-badge-danger": severity === "danger",
+      "p-badge-secondary": severity === "secondary",
+      "p-badge-contrast": severity === "contrast"
+    }];
+  }
+};
+var BadgeStyle = class _BadgeStyle extends BaseStyle {
+  name = "badge";
+  style = style2;
+  classes = classes;
+  static ɵfac = /* @__PURE__ */ (() => {
+    let ɵBadgeStyle_BaseFactory;
+    return function BadgeStyle_Factory(__ngFactoryType__) {
+      return (ɵBadgeStyle_BaseFactory || (ɵBadgeStyle_BaseFactory = ɵɵgetInheritedFactory(_BadgeStyle)))(__ngFactoryType__ || _BadgeStyle);
+    };
+  })();
+  static ɵprov = ɵɵdefineInjectable({
+    token: _BadgeStyle,
+    factory: _BadgeStyle.ɵfac
+  });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(BadgeStyle, [{
+    type: Injectable
+  }], null, null);
+})();
+var BadgeClasses;
+(function(BadgeClasses2) {
+  BadgeClasses2["root"] = "p-badge";
+})(BadgeClasses || (BadgeClasses = {}));
+var BADGE_INSTANCE = new InjectionToken("BADGE_INSTANCE");
+var BADGE_DIRECTIVE_INSTANCE = new InjectionToken("BADGE_DIRECTIVE_INSTANCE");
+var BadgeDirective = class _BadgeDirective extends BaseComponent {
+  $pcBadgeDirective = inject(BADGE_DIRECTIVE_INSTANCE, {
+    optional: true,
+    skipSelf: true
+  }) ?? void 0;
+  /**
+   * Used to pass attributes to DOM elements inside the Badge component.
+   * @defaultValue undefined
+   * @deprecated use pBadgePT instead.
+   * @group Props
+   */
+  ptBadgeDirective = input(...ngDevMode ? [void 0, {
+    debugName: "ptBadgeDirective"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * Used to pass attributes to DOM elements inside the Badge component.
+   * @defaultValue undefined
+   * @group Props
+   */
+  pBadgePT = input(...ngDevMode ? [void 0, {
+    debugName: "pBadgePT"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * Indicates whether the component should be rendered without styles.
+   * @defaultValue undefined
+   * @group Props
+   */
+  pBadgeUnstyled = input(...ngDevMode ? [void 0, {
+    debugName: "pBadgeUnstyled"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * When specified, disables the component.
+   * @group Props
+   */
+  disabled;
+  /**
+   * Size of the badge, valid options are "large" and "xlarge".
+   * @group Props
+   */
+  badgeSize;
+  /**
+   * Size of the badge, valid options are "large" and "xlarge".
+   * @group Props
+   * @deprecated use badgeSize instead.
+   */
+  set size(value) {
+    this._size = value;
+    console.log("size property is deprecated and will removed in v18, use badgeSize instead.");
+  }
+  get size() {
+    return this._size;
+  }
+  _size;
+  /**
+   * Severity type of the badge.
+   * @group Props
+   */
+  severity;
+  /**
+   * Value to display inside the badge.
+   * @group Props
+   */
+  value;
+  /**
+   * Inline style of the element.
+   * @group Props
+   */
+  badgeStyle;
+  /**
+   * Class of the element.
+   * @group Props
+   */
+  badgeStyleClass;
+  id;
+  badgeEl;
+  _componentStyle = inject(BadgeStyle);
+  get activeElement() {
+    return this.el.nativeElement.nodeName.indexOf("-") != -1 ? this.el.nativeElement.firstChild : this.el.nativeElement;
+  }
+  get canUpdateBadge() {
+    return s(this.id) && !this.disabled;
+  }
+  constructor() {
+    super();
+    effect(() => {
+      const pt = this.ptBadgeDirective() || this.pBadgePT();
+      pt && this.directivePT.set(pt);
+    });
+    effect(() => {
+      this.pBadgeUnstyled() && this.directiveUnstyled.set(this.pBadgeUnstyled());
+    });
+  }
+  onChanges(changes) {
+    const {
+      value,
+      size,
+      severity,
+      disabled,
+      badgeStyle,
+      badgeStyleClass
+    } = changes;
+    if (disabled) {
+      this.toggleDisableState();
+    }
+    if (!this.canUpdateBadge) {
+      return;
+    }
+    if (severity) {
+      this.setSeverity(severity.previousValue);
+    }
+    if (size) {
+      this.setSizeClasses();
+    }
+    if (value) {
+      this.setValue();
+    }
+    if (badgeStyle || badgeStyleClass) {
+      this.applyStyles();
+    }
+  }
+  onAfterViewInit() {
+    this.id = s2("pn_id_") + "_badge";
+    this.renderBadgeContent();
+  }
+  setValue(element) {
+    const badge = element ?? this.document.getElementById(this.id);
+    if (!badge) {
+      return;
+    }
+    if (this.value != null) {
+      if (k(badge, "p-badge-dot")) {
+        M(badge, "p-badge-dot");
+      }
+      if (this.value && String(this.value).length === 1) {
+        P(badge, "p-badge-circle");
+      } else {
+        M(badge, "p-badge-circle");
+      }
+    } else {
+      if (!k(badge, "p-badge-dot")) {
+        P(badge, "p-badge-dot");
+      }
+      M(badge, "p-badge-circle");
+    }
+    badge.textContent = "";
+    const badgeValue = this.value != null ? String(this.value) : "";
+    this.renderer.appendChild(badge, this.document.createTextNode(badgeValue));
+  }
+  setSizeClasses(element) {
+    const badge = element ?? this.document.getElementById(this.id);
+    if (!badge) {
+      return;
+    }
+    if (this.badgeSize) {
+      if (this.badgeSize === "large") {
+        P(badge, "p-badge-lg");
+        M(badge, "p-badge-xl");
+      }
+      if (this.badgeSize === "xlarge") {
+        P(badge, "p-badge-xl");
+        M(badge, "p-badge-lg");
+      }
+    } else if (this.size && !this.badgeSize) {
+      if (this.size === "large") {
+        P(badge, "p-badge-lg");
+        M(badge, "p-badge-xl");
+      }
+      if (this.size === "xlarge") {
+        P(badge, "p-badge-xl");
+        M(badge, "p-badge-lg");
+      }
+    } else {
+      M(badge, "p-badge-lg");
+      M(badge, "p-badge-xl");
+    }
+  }
+  renderBadgeContent() {
+    if (this.disabled) {
+      return;
+    }
+    const el = this.activeElement;
+    const badge = q("span", {
+      class: this.cx("root"),
+      id: this.id,
+      "p-bind": this.ptm("root")
+    });
+    this.setSeverity(null, badge);
+    this.setSizeClasses(badge);
+    this.setValue(badge);
+    P(el, "p-overlay-badge");
+    this.renderer.appendChild(el, badge);
+    this.badgeEl = badge;
+    this.applyStyles();
+  }
+  applyStyles() {
+    if (this.badgeEl && this.badgeStyle && typeof this.badgeStyle === "object") {
+      for (const [key, value] of Object.entries(this.badgeStyle)) {
+        this.renderer.setStyle(this.badgeEl, key, value);
+      }
+    }
+    if (this.badgeEl && this.badgeStyleClass) {
+      this.badgeEl.classList.add(...this.badgeStyleClass.split(" "));
+    }
+  }
+  setSeverity(oldSeverity, element) {
+    const badge = element ?? this.document.getElementById(this.id);
+    if (!badge) {
+      return;
+    }
+    if (this.severity) {
+      P(badge, `p-badge-${this.severity}`);
+    }
+    if (oldSeverity) {
+      M(badge, `p-badge-${oldSeverity}`);
+    }
+  }
+  toggleDisableState() {
+    if (!this.id) {
+      return;
+    }
+    if (this.disabled) {
+      const badge = this.activeElement?.querySelector(`#${this.id}`);
+      if (badge) {
+        this.renderer.removeChild(this.activeElement, badge);
+      }
+    } else {
+      this.renderBadgeContent();
+    }
+  }
+  static ɵfac = function BadgeDirective_Factory(__ngFactoryType__) {
+    return new (__ngFactoryType__ || _BadgeDirective)();
+  };
+  static ɵdir = ɵɵdefineDirective({
+    type: _BadgeDirective,
+    selectors: [["", "pBadge", ""]],
+    inputs: {
+      ptBadgeDirective: [1, "ptBadgeDirective"],
+      pBadgePT: [1, "pBadgePT"],
+      pBadgeUnstyled: [1, "pBadgeUnstyled"],
+      disabled: [0, "badgeDisabled", "disabled"],
+      badgeSize: "badgeSize",
+      size: "size",
+      severity: "severity",
+      value: "value",
+      badgeStyle: "badgeStyle",
+      badgeStyleClass: "badgeStyleClass"
+    },
+    features: [ɵɵProvidersFeature([BadgeStyle, {
+      provide: BADGE_DIRECTIVE_INSTANCE,
+      useExisting: _BadgeDirective
+    }, {
+      provide: PARENT_INSTANCE,
+      useExisting: _BadgeDirective
+    }]), ɵɵInheritDefinitionFeature]
+  });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(BadgeDirective, [{
+    type: Directive,
+    args: [{
+      selector: "[pBadge]",
+      providers: [BadgeStyle, {
+        provide: BADGE_DIRECTIVE_INSTANCE,
+        useExisting: BadgeDirective
+      }, {
+        provide: PARENT_INSTANCE,
+        useExisting: BadgeDirective
+      }],
+      standalone: true
+    }]
+  }], () => [], {
+    ptBadgeDirective: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "ptBadgeDirective",
+        required: false
+      }]
+    }],
+    pBadgePT: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "pBadgePT",
+        required: false
+      }]
+    }],
+    pBadgeUnstyled: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "pBadgeUnstyled",
+        required: false
+      }]
+    }],
+    disabled: [{
+      type: Input,
+      args: ["badgeDisabled"]
+    }],
+    badgeSize: [{
+      type: Input
+    }],
+    size: [{
+      type: Input
+    }],
+    severity: [{
+      type: Input
+    }],
+    value: [{
+      type: Input
+    }],
+    badgeStyle: [{
+      type: Input
+    }],
+    badgeStyleClass: [{
+      type: Input
+    }]
+  });
+})();
+var Badge = class _Badge extends BaseComponent {
+  componentName = "Badge";
+  $pcBadge = inject(BADGE_INSTANCE, {
+    optional: true,
+    skipSelf: true
+  }) ?? void 0;
+  bindDirectiveInstance = inject(Bind, {
+    self: true
+  });
+  onAfterViewChecked() {
+    this.bindDirectiveInstance.setAttrs(this.ptms(["host", "root"]));
+  }
+  /**
+   * Class of the element.
+   * @deprecated since v20.0.0, use `class` instead.
+   * @group Props
+   */
+  styleClass = input(...ngDevMode ? [void 0, {
+    debugName: "styleClass"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * Size of the badge, valid options are "large" and "xlarge".
+   * @group Props
+   */
+  badgeSize = input(...ngDevMode ? [void 0, {
+    debugName: "badgeSize"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * Size of the badge, valid options are "large" and "xlarge".
+   * @group Props
+   */
+  size = input(...ngDevMode ? [void 0, {
+    debugName: "size"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * Severity type of the badge.
+   * @group Props
+   */
+  severity = input(...ngDevMode ? [void 0, {
+    debugName: "severity"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * Value to display inside the badge.
+   * @group Props
+   */
+  value = input(...ngDevMode ? [void 0, {
+    debugName: "value"
+  }] : (
+    /* istanbul ignore next */
+    []
+  ));
+  /**
+   * When specified, disables the component.
+   * @group Props
+   */
+  badgeDisabled = input(false, __spreadProps(__spreadValues({}, ngDevMode ? {
+    debugName: "badgeDisabled"
+  } : (
+    /* istanbul ignore next */
+    {}
+  )), {
+    transform: booleanAttribute
+  }));
+  _componentStyle = inject(BadgeStyle);
+  get dataP() {
+    return this.cn({
+      circle: this.value() != null && String(this.value()).length === 1,
+      empty: this.value() == null,
+      disabled: this.badgeDisabled(),
+      [this.severity()]: this.severity(),
+      [this.size()]: this.size()
+    });
+  }
+  static ɵfac = /* @__PURE__ */ (() => {
+    let ɵBadge_BaseFactory;
+    return function Badge_Factory(__ngFactoryType__) {
+      return (ɵBadge_BaseFactory || (ɵBadge_BaseFactory = ɵɵgetInheritedFactory(_Badge)))(__ngFactoryType__ || _Badge);
+    };
+  })();
+  static ɵcmp = ɵɵdefineComponent({
+    type: _Badge,
+    selectors: [["p-badge"]],
+    hostVars: 5,
+    hostBindings: function Badge_HostBindings(rf, ctx) {
+      if (rf & 2) {
+        ɵɵattribute("data-p", ctx.dataP);
+        ɵɵclassMap(ctx.cn(ctx.cx("root"), ctx.styleClass()));
+        ɵɵstyleProp("display", ctx.badgeDisabled() ? "none" : null);
+      }
+    },
+    inputs: {
+      styleClass: [1, "styleClass"],
+      badgeSize: [1, "badgeSize"],
+      size: [1, "size"],
+      severity: [1, "severity"],
+      value: [1, "value"],
+      badgeDisabled: [1, "badgeDisabled"]
+    },
+    features: [ɵɵProvidersFeature([BadgeStyle, {
+      provide: BADGE_INSTANCE,
+      useExisting: _Badge
+    }, {
+      provide: PARENT_INSTANCE,
+      useExisting: _Badge
+    }]), ɵɵHostDirectivesFeature([Bind]), ɵɵInheritDefinitionFeature],
+    decls: 1,
+    vars: 1,
+    template: function Badge_Template(rf, ctx) {
+      if (rf & 1) {
+        ɵɵtext(0);
+      }
+      if (rf & 2) {
+        ɵɵtextInterpolate(ctx.value());
+      }
+    },
+    dependencies: [CommonModule, SharedModule, BindModule],
+    encapsulation: 2,
+    changeDetection: 0
+  });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Badge, [{
+    type: Component,
+    args: [{
+      selector: "p-badge",
+      template: `{{ value() }}`,
+      standalone: true,
+      imports: [CommonModule, SharedModule, BindModule],
+      changeDetection: ChangeDetectionStrategy.OnPush,
+      encapsulation: ViewEncapsulation.None,
+      providers: [BadgeStyle, {
+        provide: BADGE_INSTANCE,
+        useExisting: Badge
+      }, {
+        provide: PARENT_INSTANCE,
+        useExisting: Badge
+      }],
+      host: {
+        "[class]": "cn(cx('root'), styleClass())",
+        "[style.display]": 'badgeDisabled() ? "none" : null',
+        "[attr.data-p]": "dataP"
+      },
+      hostDirectives: [Bind]
+    }]
+  }], null, {
+    styleClass: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "styleClass",
+        required: false
+      }]
+    }],
+    badgeSize: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "badgeSize",
+        required: false
+      }]
+    }],
+    size: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "size",
+        required: false
+      }]
+    }],
+    severity: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "severity",
+        required: false
+      }]
+    }],
+    value: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "value",
+        required: false
+      }]
+    }],
+    badgeDisabled: [{
+      type: Input,
+      args: [{
+        isSignal: true,
+        alias: "badgeDisabled",
+        required: false
+      }]
+    }]
+  });
+})();
+var BadgeModule = class _BadgeModule {
+  static ɵfac = function BadgeModule_Factory(__ngFactoryType__) {
+    return new (__ngFactoryType__ || _BadgeModule)();
+  };
+  static ɵmod = ɵɵdefineNgModule({
+    type: _BadgeModule,
+    imports: [Badge, BadgeDirective, SharedModule],
+    exports: [Badge, BadgeDirective, SharedModule]
+  });
+  static ɵinj = ɵɵdefineInjector({
+    imports: [Badge, SharedModule, SharedModule]
+  });
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(BadgeModule, [{
+    type: NgModule,
+    args: [{
+      imports: [Badge, BadgeDirective, SharedModule],
+      exports: [Badge, BadgeDirective, SharedModule]
     }]
   }], null, null);
 })();
@@ -1373,7 +1999,7 @@ var _c010 = ["data-p-icon", "arrow-down"];
 var ArrowDownIcon = class _ArrowDownIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵArrowDownIcon_BaseFactory;
@@ -1522,7 +2148,7 @@ var _c013 = ["data-p-icon", "arrow-left"];
 var ArrowLeftIcon = class _ArrowLeftIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵArrowLeftIcon_BaseFactory;
@@ -1631,7 +2257,7 @@ var _c015 = ["data-p-icon", "arrow-up"];
 var ArrowUpIcon = class _ArrowUpIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵArrowUpIcon_BaseFactory;
@@ -1696,7 +2322,7 @@ var _c016 = ["data-p-icon", "ban"];
 var BanIcon = class _BanIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵBanIcon_BaseFactory;
@@ -2176,7 +2802,7 @@ var _c027 = ["data-p-icon", "exclamation-triangle"];
 var ExclamationTriangleIcon = class _ExclamationTriangleIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵExclamationTriangleIcon_BaseFactory;
@@ -2291,7 +2917,7 @@ var _c029 = ["data-p-icon", "eyeslash"];
 var EyeSlashIcon = class _EyeSlashIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵEyeSlashIcon_BaseFactory;
@@ -2356,7 +2982,7 @@ var _c030 = ["data-p-icon", "filter"];
 var FilterIcon = class _FilterIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵFilterIcon_BaseFactory;
@@ -2419,7 +3045,7 @@ var _c031 = ["data-p-icon", "filter-slash"];
 var FilterSlashIcon = class _FilterSlashIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵFilterSlashIcon_BaseFactory;
@@ -2484,7 +3110,7 @@ var _c032 = ["data-p-icon", "home"];
 var HomeIcon = class _HomeIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵHomeIcon_BaseFactory;
@@ -2549,7 +3175,7 @@ var _c033 = ["data-p-icon", "info-circle"];
 var InfoCircleIcon = class _InfoCircleIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵInfoCircleIcon_BaseFactory;
@@ -2656,7 +3282,7 @@ var _c035 = ["data-p-icon", "pencil"];
 var PencilIcon = class _PencilIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵPencilIcon_BaseFactory;
@@ -2719,7 +3345,7 @@ var _c036 = ["data-p-icon", "plus"];
 var PlusIcon = class _PlusIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵPlusIcon_BaseFactory;
@@ -2782,7 +3408,7 @@ var _c037 = ["data-p-icon", "refresh"];
 var RefreshIcon = class _RefreshIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵRefreshIcon_BaseFactory;
@@ -2847,7 +3473,7 @@ var _c038 = ["data-p-icon", "search"];
 var SearchIcon = class _SearchIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵSearchIcon_BaseFactory;
@@ -2912,7 +3538,7 @@ var _c039 = ["data-p-icon", "search-minus"];
 var SearchMinusIcon = class _SearchMinusIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵSearchMinusIcon_BaseFactory;
@@ -2977,7 +3603,7 @@ var _c040 = ["data-p-icon", "search-plus"];
 var SearchPlusIcon = class _SearchPlusIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵSearchPlusIcon_BaseFactory;
@@ -3042,7 +3668,7 @@ var _c041 = ["data-p-icon", "sort-alt"];
 var SortAltIcon = class _SortAltIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵSortAltIcon_BaseFactory;
@@ -3111,7 +3737,7 @@ var _c042 = ["data-p-icon", "sort-amount-down"];
 var SortAmountDownIcon = class _SortAmountDownIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵSortAmountDownIcon_BaseFactory;
@@ -3174,7 +3800,7 @@ var _c043 = ["data-p-icon", "sort-amount-up-alt"];
 var SortAmountUpAltIcon = class _SortAmountUpAltIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵSortAmountUpAltIcon_BaseFactory;
@@ -3237,7 +3863,7 @@ var _c044 = ["data-p-icon", "spinner"];
 var SpinnerIcon = class _SpinnerIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵSpinnerIcon_BaseFactory;
@@ -3300,7 +3926,7 @@ var _c045 = ["data-p-icon", "star"];
 var StarIcon = class _StarIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵStarIcon_BaseFactory;
@@ -3363,7 +3989,7 @@ var _c046 = ["data-p-icon", "star-fill"];
 var StarFillIcon = class _StarFillIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵStarFillIcon_BaseFactory;
@@ -3426,7 +4052,7 @@ var _c047 = ["data-p-icon", "th-large"];
 var ThLargeIcon = class _ThLargeIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵThLargeIcon_BaseFactory;
@@ -3533,7 +4159,7 @@ var _c049 = ["data-p-icon", "times-circle"];
 var TimesCircleIcon = class _TimesCircleIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵTimesCircleIcon_BaseFactory;
@@ -3598,7 +4224,7 @@ var _c050 = ["data-p-icon", "trash"];
 var TrashIcon = class _TrashIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵTrashIcon_BaseFactory;
@@ -3663,7 +4289,7 @@ var _c051 = ["data-p-icon", "undo"];
 var UndoIcon = class _UndoIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵUndoIcon_BaseFactory;
@@ -3728,7 +4354,7 @@ var _c052 = ["data-p-icon", "upload"];
 var UploadIcon = class _UploadIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵUploadIcon_BaseFactory;
@@ -3793,7 +4419,7 @@ var _c053 = ["data-p-icon", "window-maximize"];
 var WindowMaximizeIcon = class _WindowMaximizeIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵWindowMaximizeIcon_BaseFactory;
@@ -3858,7 +4484,7 @@ var _c054 = ["data-p-icon", "window-minimize"];
 var WindowMinimizeIcon = class _WindowMinimizeIcon extends BaseIcon {
   pathId;
   onInit() {
-    this.pathId = "url(#" + s() + ")";
+    this.pathId = "url(#" + s2() + ")";
   }
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵWindowMinimizeIcon_BaseFactory;
@@ -3919,13 +4545,13 @@ var WindowMinimizeIcon = class _WindowMinimizeIcon extends BaseIcon {
 })();
 
 // node_modules/@primeuix/styles/dist/ripple/index.mjs
-var style = "\n    .p-ink {\n        display: block;\n        position: absolute;\n        background: dt('ripple.background');\n        border-radius: 100%;\n        transform: scale(0);\n        pointer-events: none;\n    }\n\n    .p-ink-active {\n        animation: ripple 0.4s linear;\n    }\n\n    @keyframes ripple {\n        100% {\n            opacity: 0;\n            transform: scale(2.5);\n        }\n    }\n";
+var style3 = "\n    .p-ink {\n        display: block;\n        position: absolute;\n        background: dt('ripple.background');\n        border-radius: 100%;\n        transform: scale(0);\n        pointer-events: none;\n    }\n\n    .p-ink-active {\n        animation: ripple 0.4s linear;\n    }\n\n    @keyframes ripple {\n        100% {\n            opacity: 0;\n            transform: scale(2.5);\n        }\n    }\n";
 
 // node_modules/primeng/fesm2022/primeng-ripple.mjs
-var style2 = (
+var style4 = (
   /*css*/
   `
-    ${style}
+    ${style3}
 
     /* For PrimeNG */
     .p-ripple {
@@ -3945,13 +4571,13 @@ var style2 = (
     }
 `
 );
-var classes = {
+var classes2 = {
   root: "p-ink"
 };
 var RippleStyle = class _RippleStyle extends BaseStyle {
   name = "ripple";
-  style = style2;
-  classes = classes;
+  style = style4;
+  classes = classes2;
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵRippleStyle_BaseFactory;
     return function RippleStyle_Factory(__ngFactoryType__) {
@@ -4118,7 +4744,7 @@ var RippleModule = class _RippleModule {
 })();
 
 // node_modules/@primeuix/styles/dist/button/index.mjs
-var style3 = `
+var style5 = `
     .p-button {
         display: inline-flex;
         cursor: pointer;
@@ -4906,7 +5532,7 @@ function Button_p_badge_6_Template(rf, ctx) {
     ɵɵproperty("value", ctx_r0.badge || (ctx_r0.buttonProps == null ? null : ctx_r0.buttonProps.badge))("severity", ctx_r0.badgeSeverity || (ctx_r0.buttonProps == null ? null : ctx_r0.buttonProps.badgeSeverity))("pt", ctx_r0.ptm("pcBadge"))("unstyled", ctx_r0.unstyled());
   }
 }
-var classes2 = {
+var classes3 = {
   root: ({
     instance
   }) => ["p-button p-component", {
@@ -4943,8 +5569,8 @@ var classes2 = {
 };
 var ButtonStyle = class _ButtonStyle extends BaseStyle {
   name = "button";
-  style = style3;
-  classes = classes2;
+  style = style5;
+  classes = classes3;
   static ɵfac = /* @__PURE__ */ (() => {
     let ɵButtonStyle_BaseFactory;
     return function ButtonStyle_Factory(__ngFactoryType__) {
@@ -5446,7 +6072,7 @@ var ButtonDirective = class _ButtonDirective extends BaseComponent {
   set buttonProps(val) {
     this._buttonProps = val;
     if (val && typeof val === "object") {
-      Object.entries(val).forEach(([k, v]) => this[`_${k}`] !== v && (this[`_${k}`] = v));
+      Object.entries(val).forEach(([k2, v]) => this[`_${k2}`] !== v && (this[`_${k2}`] = v));
     }
   }
   /**
