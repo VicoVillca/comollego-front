@@ -4,14 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { RouteService } from '../../core/services/route.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { LugarService } from '../../features/lugares/lugar.service';
 import { MapComponent } from '../../features/map/map';
 import { RouteDetailsComponent } from '../../features/routes/route-details/route-details';
 import { RouteEditorComponent } from '../../features/routes/route-editor/route-editor';
 import { Ruta, Parada, Lugar } from '../../core/models/transit.models';
-import { LUGARES_MOCK } from '../../data/mock-data';
 
 @Component({
   selector: 'app-main-layout',
@@ -35,6 +36,7 @@ export class MainLayoutComponent implements OnInit {
   readonly routeService = inject(RouteService);
   readonly gamificationService = inject(GamificationService);
   readonly authService = inject(AuthService);
+  readonly lugarService = inject(LugarService);
   private router = inject(Router);
 
   // ============================================================
@@ -56,8 +58,10 @@ export class MainLayoutComponent implements OnInit {
   // BUSCADOR DE LUGARES
   // ============================================================
   lugarSearchText = signal('');
-  lugares: Lugar[] = LUGARES_MOCK;
-  
+  lugares = signal<Lugar[]>([]);
+  isLoadingLugares = signal(false);
+  lugarSearchError = signal<string | null>(null);
+
   // ============================================================
   // FORMULARIO NUEVO LUGAR
   // ============================================================
@@ -92,16 +96,10 @@ export class MainLayoutComponent implements OnInit {
   });
 
   // ============================================================
-  // FILTRO DE LUGARES (para sugerencias)
+  // FILTRO DE LUGARES (para sugerencias - usando backend)
   // ============================================================
   filteredLugares = computed(() => {
-    const search = this.lugarSearchText().toLowerCase().trim();
-    if (!search) return [];
-    return this.lugares.filter(l => 
-      l.nombre.toLowerCase().includes(search) || 
-      l.ciudad.toLowerCase().includes(search) ||
-      (l.descripcion?.toLowerCase().includes(search) ?? false)
-    );
+    return this.lugares();
   });
 
   // ============================================================
@@ -111,7 +109,6 @@ export class MainLayoutComponent implements OnInit {
     // Cargar usuario desde el servicio
     this.currentUser.set(this.authService.currentUser());
     
-    // Si no hay usuario, intentar cargar desde localStorage
     if (!this.currentUser()) {
       const userData = localStorage.getItem('user');
       if (userData) {
@@ -288,7 +285,6 @@ export class MainLayoutComponent implements OnInit {
   // ============================================================
   handleSaveRoute(route: Ruta) {
     this.routeService.saveRoute(route);
-    // Cerrar el editor después de guardar
     this.routeService.cancelEditing();
   }
 
@@ -301,20 +297,51 @@ export class MainLayoutComponent implements OnInit {
   }
 
   // ============================================================
-  // BUSCADOR DE LUGARES (como Google)
+  // 🔥 BUSCADOR DE LUGARES (conectado al backend)
   // ============================================================
   onLugarSearchChange(value: string) {
     this.lugarSearchText.set(value);
-    if (value.trim().length > 0) {
-      this.showLugarSuggestions.set(true);
+    
+    if (value.trim().length >= 2) {  // 🔥 Solo buscar si tiene al menos 2 caracteres
+      this.isLoadingLugares.set(true);
+      this.lugarSearchError.set(null);
+      
+      this.lugarService.buscarLugares(value).subscribe({
+        next: (response) => {
+          this.isLoadingLugares.set(false);
+          
+          if (response.success && response.data) {
+            this.lugares.set(response.data);
+            this.showLugarSuggestions.set(response.data.length > 0);
+          } else {
+            this.lugares.set([]);
+            this.showLugarSuggestions.set(false);
+            if (response.messages) {
+              this.lugarSearchError.set(response.messages.join(' • '));
+            }
+          }
+        },
+        error: (error) => {
+          this.isLoadingLugares.set(false);
+          this.lugares.set([]);
+          this.showLugarSuggestions.set(false);
+          this.lugarSearchError.set('Error al buscar lugares');
+          console.error('❌ Error buscando lugares:', error);
+        }
+      });
     } else {
+      // 🔥 Si el término es muy corto, limpiar resultados
+      this.lugares.set([]);
       this.showLugarSuggestions.set(false);
+      this.lugarSearchError.set(null);
     }
   }
 
   clearLugarSearch() {
     this.lugarSearchText.set('');
+    this.lugares.set([]);
     this.showLugarSuggestions.set(false);
+    this.lugarSearchError.set(null);
   }
 
   onLugarBlur() {
@@ -323,13 +350,28 @@ export class MainLayoutComponent implements OnInit {
     }, 200);
   }
 
-  selectLugar(lugar: Lugar) {
-    console.log('📍 Lugar seleccionado:', lugar);
-    this.gamificationService.notification.set(`📍 ${lugar.nombre} (${lugar.ciudad})`);
-    setTimeout(() => this.gamificationService.notification.set(''), 3000);
-    this.lugarSearchText.set('');
-    this.showLugarSuggestions.set(false);
-  }
+// ============================================================
+// SELECT LUGAR (actualizado)
+// ============================================================
+selectLugar(lugar: Lugar) {
+  console.log('📍 Lugar seleccionado:', lugar);
+  
+  // 🔥 Guardar la ubicación seleccionada
+  this.selectedLocation.set({
+    lat: lugar.latitud,
+    lng: lugar.longitud,
+    nombre: lugar.nombre
+  });
+  
+  // 🔥 Limpiar el texto de búsqueda y sugerencias
+  this.lugarSearchText.set('');
+  this.lugares.set([]);
+  this.showLugarSuggestions.set(false);
+  
+  // Notificar al usuario
+  this.gamificationService.notification.set(`📍 ${lugar.nombre} (${lugar.ciudad})`);
+  setTimeout(() => this.gamificationService.notification.set(''), 3000);
+}
 
   // ============================================================
   // DIALOGS
@@ -382,8 +424,7 @@ export class MainLayoutComponent implements OnInit {
       return;
     }
 
-    const newLugar: Lugar = {
-      id: Date.now() + Math.random() * 1000,
+    const newLugar: Partial<Lugar> = {
       nombre: this.newLugarNombre.trim(),
       ciudad: this.newLugarCiudad.trim(),
       latitud: this.newLugarLat || -16.5000,
@@ -391,10 +432,24 @@ export class MainLayoutComponent implements OnInit {
       descripcion: this.newLugarDesc.trim() || undefined
     };
 
-    this.lugares = [newLugar, ...this.lugares];
-    this.gamificationService.notification.set(`✅ Lugar "${newLugar.nombre}" agregado`);
-    setTimeout(() => this.gamificationService.notification.set(''), 3000);
-    this.closeAddLugarModal();
+    // 🔥 Guardar en el backend
+    this.lugarService.crearLugar(newLugar).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.gamificationService.notification.set(`✅ Lugar "${response.data.nombre}" agregado`);
+          setTimeout(() => this.gamificationService.notification.set(''), 3000);
+          this.closeAddLugarModal();
+        } else {
+          this.gamificationService.notification.set('❌ Error al guardar el lugar');
+          setTimeout(() => this.gamificationService.notification.set(''), 3000);
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error guardando lugar:', error);
+        this.gamificationService.notification.set('❌ Error al conectar con el servidor');
+        setTimeout(() => this.gamificationService.notification.set(''), 3000);
+      }
+    });
   }
 
   // ============================================================
@@ -423,4 +478,28 @@ export class MainLayoutComponent implements OnInit {
     };
     return map[route.tipoTransporteId] || `Tipo ${route.tipoTransporteId}`;
   }
+
+  // ============================================================
+// 🔥 NUEVO: MARCADOR SELECCIONADO
+// ============================================================
+selectedLocation = signal<{ lat: number; lng: number; nombre: string } | null>(null);
+
+
+// ============================================================
+// 🔥 LIMPIAR UBICACIÓN SELECCIONADA
+// ============================================================
+clearSelectedLocation() {
+  // Limpiar el marcador del mapa
+  this.selectedLocation.set(null);
+  
+  // Limpiar el texto del buscador
+  this.lugarSearchText.set('');
+  this.lugares.set([]);
+  this.showLugarSuggestions.set(false);
+  
+  // Notificar al usuario
+  this.gamificationService.notification.set('📍 Lugar removido');
+  setTimeout(() => this.gamificationService.notification.set(''), 2000);
+}
+
 }

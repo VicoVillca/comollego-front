@@ -30,19 +30,23 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
   // ============================================================
-  // INPUTS - EL MAPA SOLO RECIBE ESTO
+  // INPUTS
   // ============================================================
-  polyline = input<string>('');                    // String con coordenadas "lat,lng;lat,lng;..."
-  stops = input<Parada[]>([]);                    // Array de paradas
-  color = input<string>('#3B82F6');               // Color para líneas y marcadores
-  mode = input<'view' | 'edit'>('view');          // Modo de operación
+  polyline = input<string>('');
+  stops = input<Parada[]>([]);
+  color = input<string>('#3B82F6');
+  mode = input<'view' | 'edit'>('view');
+  
+  // 🔥 NUEVO: Ubicación seleccionada para mostrar marcador
+  selectedLocation = input<{ lat: number; lng: number; nombre: string } | null>(null);
 
   // ============================================================
   // OUTPUTS
   // ============================================================
-  mapClick = output<{lat: number, lng: number}>();     // Click en el mapa (para agregar puntos)
-  stopClicked = output<Parada>();                       // Click en una parada
-  dataChanged = output<{polyline: string, stops: Parada[]}>(); // Cambios en edición
+  mapClick = output<{lat: number, lng: number}>();
+  stopClicked = output<Parada>();
+  dataChanged = output<{polyline: string, stops: Parada[]}>();
+  locationCleared = output<void>();  // 🔥 NUEVO: Cuando se cierra el marcador
 
   // ============================================================
   // ESTADO INTERNO
@@ -52,29 +56,35 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private stopMarkers: Map<number, L.Marker> = new Map();
   private lastFittedPolyline: string | null = null;
   
-  // Señal para saber si estamos en modo edición
+  // 🔥 NUEVO: Referencia al marcador seleccionado
+  private selectedMarker: L.Marker | null = null;
+  
   isEditMode = computed(() => this.mode() === 'edit');
 
   // ============================================================
   // CONSTRUCTOR
   // ============================================================
   constructor() {
-    // Efecto que escucha cambios en los inputs y re-renderiza
     effect(() => {
-      // Forzar lectura de todas las señales
       const polyline = this.polyline();
       const stops = this.stops();
       const color = this.color();
       const mode = this.mode();
+      const location = this.selectedLocation();
       
       console.log('🔄 Renderizando mapa...');
       console.log('📏 Polyline:', polyline ? `${polyline.split(';').length} puntos` : 'vacío');
       console.log('🚏 Stops:', stops.length);
-      console.log('🎨 Color:', color);
-      console.log('📋 Modo:', mode);
+      console.log('📍 Ubicación seleccionada:', location);
       
       if (this.map) {
         this.renderLayers();
+        // 🔥 Si hay una ubicación seleccionada, mostrar el marcador
+        if (location) {
+          this.showSelectedLocation(location);
+        } else {
+          this.clearSelectedMarker();
+        }
       }
     });
   }
@@ -86,10 +96,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     setTimeout(() => { 
       this.initMap(); 
     }, 300);
+    
+    // 🔥 Escuchar evento de limpiar ubicación
+    window.addEventListener('clearLocation', this.handleClearLocation);
   }
 
   ngOnDestroy() {
     if (this.map) this.map.remove();
+    window.removeEventListener('clearLocation', this.handleClearLocation);
   }
 
   // ============================================================
@@ -110,10 +124,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       maxZoom: 20
     }).addTo(this.map);
 
-    // Click en el mapa
-    /*this.map.on('click', (e: L.LeafletMouseEvent) => {
+    // Click en el mapa - SOLO EMITE, NO AGREGA NADA
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
       this.mapClick.emit({ lat: e.latlng.lat, lng: e.latlng.lng });
-    });*/
+    });
 
     this.map.invalidateSize();
     console.log('✅ Mapa inicializado');
@@ -135,17 +149,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     this.layers = [];
     this.stopMarkers.clear();
 
-    var polylineStr = this.polyline();
+    const polylineStr = this.polyline();
     const stops = this.stops();
     const color = this.color();
     const isEdit = this.isEditMode();
 
-      if (!stops || stops.length === 0) {
-        console.log('🧹 No hay paradas, limpiando polyline a vacío');
-        polylineStr = '';
-      }
-
-    // Dibujar según el modo
     if (isEdit) {
       this.drawEditMode(polylineStr, stops, color);
     } else {
@@ -293,18 +301,35 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       // Guardar referencia a la parada
       (marker as any)._stopData = stop;
 
+      // MANEJADOR DE ARRASTRE
       marker.on('dragend', (e: any) => {
         const newLatLng = e.target.getLatLng();
         const stopData = (e.target as any)._stopData;
-
         this.handleStopDrag(stopData, newLatLng, coords, stops);
       });
 
+      // POPUP CON BOTÓN DE ELIMINAR
       marker.bindPopup(`
-  <div class="p-1.5 select-none font-sans">
-    <p class="text-sm font-semibold text-neutral-800 m-0">${stop.nombre}</p>
-  </div>
-`);
+        <div class="p-2 select-none font-sans min-w-[180px]">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-1">
+                <span class="text-amber-500 text-xs">✎</span>
+                <span class="text-[10px] font-bold text-amber-600">PARADA BORRADOR</span>
+              </div>
+              <p class="text-sm font-semibold text-neutral-800 m-0">${stop.nombre}</p>
+              <p class="text-[10px] text-neutral-500 m-0">🔄 Arrastra para mover</p>
+            </div>
+            <button 
+              class="bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center transition-colors border border-red-200 hover:border-red-300"
+              onclick="window.dispatchEvent(new CustomEvent('deleteStop', { detail: { stopId: ${stop.id}, stopName: '${stop.nombre}' } }))"
+              title="Eliminar parada"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      `);
 
       this.layers.push(marker);
     });
@@ -345,46 +370,146 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-// ============================================================
-// 🔄 MANEJAR ARRASTRE DE PARADA (CORREGIDO)
-// ============================================================
-// En map.ts
-private handleStopDrag(
-  stop: Parada, 
-  newLatLng: L.LatLng, 
-  coords: [number, number][],
-  stops: Parada[]
-) {
-  // 🔥 BUSCAR POR LATITUD Y LONGITUD (NO POR ÍNDICE)
-  const pointIndex = coords.findIndex(
-    coord => coord[0] === stop.latitud && coord[1] === stop.longitud
-  );
-  
-  if (pointIndex === -1) {
-    console.warn('⚠️ Punto no encontrado para la parada:', stop.nombre);
-    console.warn('   Buscando:', stop.latitud, stop.longitud);
-    console.warn('   En polyline:', coords);
-    return;
-  }
-  
-  console.log(`📍 Arrastrando parada "${stop.nombre}"`);
-  console.log(`   Punto encontrado en índice: ${pointIndex}`);
-  console.log(`   Nueva posición: ${newLatLng.lat}, ${newLatLng.lng}`);
-  
-  // Actualizar la parada
-  const updatedStops = stops.map(s => {
-    if (s.id === stop.id) {
-      return { ...s, latitud: newLatLng.lat, longitud: newLatLng.lng };
+  // ============================================================
+  // 🔄 MANEJAR ARRASTRE DE PARADA
+  // ============================================================
+  private handleStopDrag(
+    stop: Parada, 
+    newLatLng: L.LatLng, 
+    coords: [number, number][],
+    stops: Parada[]
+  ) {
+    // 🔥 Encontrar el índice de la parada arrastrada
+    const stopIndex = stops.findIndex(s => s.id === stop.id);
+    
+    console.log(`📍 Arrastrando parada "${stop.nombre}" (índice: ${stopIndex})`);
+    console.log(`   Nueva posición: ${newLatLng.lat}, ${newLatLng.lng}`);
+    console.log(`   Puntos en polyline: ${coords.length}`);
+    console.log(`   Paradas totales: ${stops.length}`);
+    
+    // Actualizar posición de la parada
+    const updatedStops = stops.map(s => {
+      if (s.id === stop.id) {
+        return { ...s, latitud: newLatLng.lat, longitud: newLatLng.lng };
+      }
+      return s;
+    });
+
+    // 🔥 Actualizar el punto del polyline en el mismo índice
+    const updatedCoords = [...coords];
+    
+    if (stopIndex < updatedCoords.length) {
+      updatedCoords[stopIndex] = [newLatLng.lat, newLatLng.lng];
+      console.log(`   ✅ Punto ${stopIndex} actualizado en el polyline`);
+    } else {
+      updatedCoords.push([newLatLng.lat, newLatLng.lng]);
+      console.log(`   ⚠️ Punto ${stopIndex} no existía, se agregó al final`);
     }
-    return s;
+
+    this.emitDataChanged(updatedCoords, updatedStops);
+  }
+
+  // ============================================================
+  // 🗑️ MANEJAR ELIMINAR PARADA DESDE POPUP
+  // ============================================================
+  private handleDeleteStopEvent(event: Event) {
+    const customEvent = event as CustomEvent<{ stopId: number, stopName?: string }>;
+    const stopId = customEvent.detail.stopId;
+    const stopName = customEvent.detail.stopName || 'Desconocida';
+    
+    console.log(`🗑️ Eliminando parada: "${stopName}" (ID: ${stopId})`);
+    
+    const currentStops = this.stops();
+    const coords = this.polylineToCoordinates(this.polyline());
+    
+    const stopIndex = currentStops.findIndex(s => s.id === stopId);
+    
+    if (stopIndex === -1) {
+      console.warn('⚠️ Parada no encontrada:', stopId);
+      return;
+    }
+    
+    const updatedStops = currentStops.filter(s => s.id !== stopId)
+      .map((s, i) => ({ ...s, orden: i + 1 }));
+    
+    const updatedCoords = coords.filter((_, i) => i !== stopIndex);
+    
+    console.log(`   ✅ Parada eliminada, ${updatedStops.length} paradas restantes`);
+    console.log(`   ✅ Punto eliminado, ${updatedCoords.length} puntos restantes`);
+    
+    this.emitDataChanged(updatedCoords, updatedStops);
+    
+    if (this.map) {
+      this.map.closePopup();
+    }
+  }
+
+// ============================================================
+// 🔥 MÁS SIMPLE: SOLO EL MARCADOR CON POPUP
+// ============================================================
+private showSelectedLocation(location: { lat: number; lng: number; nombre: string }) {
+  if (!this.map) return;
+
+  this.clearSelectedMarker();
+
+  // 🔥 Usar el ícono predeterminado de Leaflet con color
+  const icon = L.icon({
+    iconUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34]
   });
 
-  // 🔥 Actualizar el punto en el índice encontrado
-  const updatedCoords = [...coords];
-  updatedCoords[pointIndex] = [newLatLng.lat, newLatLng.lng];
+  // 🔥 Crear el marcador
+  this.selectedMarker = L.marker([location.lat, location.lng], {
+    icon: icon,
+    zIndexOffset: 1000
+  }).addTo(this.map);
 
-  this.emitDataChanged(updatedCoords, updatedStops);
+  // 🔥 Popup con X
+  this.selectedMarker.bindPopup(`
+    <div class="p-2 select-none min-w-[150px]">
+      <div class="flex items-center justify-between gap-3">
+        <h4 class="font-bold text-sm text-neutral-900 m-0">${location.nombre}</h4>
+      </div>
+    </div>
+  `);
+
+  // 🔥 Centrar el mapa
+  this.map.setView([location.lat, location.lng], 16, {
+    animate: true,
+    duration: 1
+  });
+
+  setTimeout(() => {
+    if (this.selectedMarker) {
+      this.selectedMarker.openPopup();
+    }
+  }, 300);
+
+  console.log('✅ Marcador mostrado en:', location.nombre);
 }
+
+  // ============================================================
+  // 🔥 NUEVO: LIMPIAR MARCADOR SELECCIONADO
+  // ============================================================
+  private clearSelectedMarker() {
+    if (this.selectedMarker) {
+      this.map?.removeLayer(this.selectedMarker);
+      this.selectedMarker = null;
+      console.log('🗑️ Marcador eliminado');
+    }
+  }
+
+  // ============================================================
+  // 🔥 NUEVO: ESCUCHAR EVENTO DE LIMPIAR UBICACIÓN
+  // ============================================================
+  private handleClearLocation = () => {
+    this.clearSelectedMarker();
+    this.locationCleared.emit();
+  };
+
   // ============================================================
   // 📤 EMITIR CAMBIOS AL PADRE
   // ============================================================

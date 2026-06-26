@@ -1208,3 +1208,94 @@
   object-fit: cover;  /* 🔥 Para que la imagen cubra todo el círculo */
   border-radius: 50%;
 }
+
+
+/* ============================================================ */
+/* SUGERENCIAS - LOADING                                        */
+/* ============================================================ */
+.suggestion-loading {
+  padding: 30px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+}
+
+.suggestion-loading i {
+  font-size: 32px;
+  color: #3b82f6;
+}
+
+.suggestion-loading span {
+  font-size: 14px;
+}
+
+/* ============================================================ */
+/* 🔥 CHIP DEL LUGAR SELECCIONADO                               */
+/* ============================================================ */
+.selected-location-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  border: 1px solid #3b82f6;
+  border-radius: 20px;
+  padding: 4px 8px 4px 12px;
+  animation: chipSlideIn 0.3s ease;
+  flex-shrink: 0;
+  max-width: 300px;
+}
+
+@keyframes chipSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chip-icon {
+  font-size: 14px;
+}
+
+.chip-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.chip-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.chip-remove:hover {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.chip-remove i {
+  font-size: 12px;
+}
+
+

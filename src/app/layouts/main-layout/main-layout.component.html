@@ -13,82 +13,113 @@
   <!-- ============================================================ -->
   <!-- 🗺️ MAPA                                                     -->
   <!-- ============================================================ -->
-  <main class="map-container-layer">
-    <app-map
-      [polyline]="mapPolyline()"
-      [stops]="mapStops()"
-      [color]="mapColor()"
-      [mode]="mapMode()"
-      (mapClick)="handleMapClick($event.lat, $event.lng)"
-      (stopClicked)="handleStopClick($event)"
-      (dataChanged)="handleMapDataChanged($event)"
-    ></app-map>
-  </main>
+<!-- ============================================================ -->
+<!-- 🗺️ MAPA                                                     -->
+<!-- ============================================================ -->
+<main class="map-container-layer">
+  <app-map
+    [polyline]="mapPolyline()"
+    [stops]="mapStops()"
+    [color]="mapColor()"
+    [mode]="mapMode()"
+    [selectedLocation]="selectedLocation()"
+    (mapClick)="handleMapClick($event.lat, $event.lng)"
+    (stopClicked)="handleStopClick($event)"
+    (dataChanged)="handleMapDataChanged($event)"
+    (locationCleared)="selectedLocation.set(null)"
+  ></app-map>
+</main>
 
-  <!-- ============================================================ -->
-  <!-- 🔍 BUSCADOR DE LUGARES (con círculo de usuario)              -->
-  <!-- ============================================================ -->
-  <div class="search-layer">
-    <div class="search-container">
-      <div class="search-box">
-        <i class="pi pi-search search-icon"></i>
+<!-- ============================================================ -->
+<!-- 🔍 BUSCADOR DE LUGARES (con chip de selección)              -->
+<!-- ============================================================ -->
+<div class="search-layer">
+  <div class="search-container">
+    <div class="search-box">
+      <i class="pi pi-search search-icon"></i>
+      
+      <!-- 🔥 CHIP DEL LUGAR SELECCIONADO -->
+      @if (selectedLocation()) {
+        <div class="selected-location-chip">
+          <span class="chip-icon">📍</span>
+          <span class="chip-name">{{ selectedLocation()?.nombre }}</span>
+          <button class="chip-remove" (click)="clearSelectedLocation()" title="Quitar lugar">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      }
+      
+      <!-- 🔥 INPUT DE BÚSQUEDA (se oculta si hay lugar seleccionado) -->
+      @if (!selectedLocation()) {
         <input
           type="text"
           class="search-input"
-          placeholder="Buscar lugares, paradas, estaciones..."
+          placeholder="¿Donde quieres ir?"
           [(ngModel)]="lugarSearchText"
           (ngModelChange)="onLugarSearchChange($event)"
           (focus)="showLugarSuggestions.set(true)"
           (blur)="onLugarBlur()"
         />
-        <!-- CÍRCULO DE USUARIO CON FOTO -->
-<button class="user-avatar-circle" (click)="toggleUserDialog()" title="Mi perfil">
-  @if (currentUser()?.pictureUrl) {
-    <img 
-      [src]="currentUser()?.pictureUrl" 
-      alt="Foto de perfil"
-      class="user-avatar-image"
-    />
-  } @else {
-    <span class="user-avatar-text">{{ currentUser()?.name?.charAt(0) || 'U' }}</span>
-  }
-</button>
-      </div>
+      }
+      
+      <!-- Spinner de carga -->
+      @if (isLoadingLugares()) {
+        <i class="pi pi-spin pi-spinner" style="color: #3b82f6;"></i>
+      }
+      
+      <!-- CÍRCULO DE USUARIO -->
+      <button class="user-avatar-circle" (click)="toggleUserDialog()" title="Mi perfil">
+        @if (currentUser()?.pictureUrl) {
+          <img 
+            [src]="currentUser()?.pictureUrl" 
+            alt="Foto de perfil"
+            class="user-avatar-image"
+          />
+        } @else {
+          <span class="user-avatar-text">{{ currentUser()?.name?.charAt(0) || 'U' }}</span>
+        }
+      </button>
+    </div>
 
-      <!-- Sugerencias (como Google) -->
-      @if (showLugarSuggestions() && lugarSearchText().trim().length > 0) {
-        <div class="suggestions-dropdown">
-          @if (filteredLugares().length === 0) {
-            <div class="suggestion-empty">
-              <i class="pi pi-plus-circle"></i>
-              <span>No se encontraron lugares</span>
-              <button class="add-lugar-suggestion" (click)="openAddLugarModal()">
-                Agregar nuevo lugar
-              </button>
-            </div>
-          } @else {
-            @for (lugar of filteredLugares(); track lugar.id) {
-              <div class="suggestion-item" (click)="selectLugar(lugar)">
-                <div class="suggestion-icon">
-                  <i class="pi pi-map-marker"></i>
-                </div>
-                <div class="suggestion-info">
-                  <span class="suggestion-name">{{ lugar.nombre }}</span>
-                  <span class="suggestion-desc">{{ lugar.ciudad }}</span>
-                </div>
-                <i class="pi pi-chevron-right suggestion-arrow"></i>
+    <!-- Sugerencias (resultados del backend) -->
+    @if (showLugarSuggestions() && lugarSearchText().trim().length >= 2 && !selectedLocation()) {
+      <div class="suggestions-dropdown">
+        @if (isLoadingLugares()) {
+          <div class="suggestion-loading">
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Buscando lugares...</span>
+          </div>
+        } @else if (filteredLugares().length === 0) {
+          <div class="suggestion-empty">
+            <i class="pi pi-search-minus"></i>
+            <span>No se encontraron lugares</span>
+            <button class="add-lugar-suggestion" (click)="openAddLugarModal()">
+              Agregar nuevo lugar
+            </button>
+          </div>
+        } @else {
+          @for (lugar of filteredLugares(); track lugar.id) {
+            <div class="suggestion-item" (click)="selectLugar(lugar)">
+              <div class="suggestion-icon">
+                <i class="pi pi-map-marker"></i>
               </div>
-            }
-            <div class="suggestion-footer">
-              <button class="add-lugar-suggestion-full" (click)="openAddLugarModal()">
-                <i class="pi pi-plus"></i> Agregar nuevo lugar
-              </button>
+              <div class="suggestion-info">
+                <span class="suggestion-name">{{ lugar.nombre }}</span>
+                <span class="suggestion-desc">{{ lugar.ciudad }}</span>
+              </div>
+              <i class="pi pi-chevron-right suggestion-arrow"></i>
             </div>
           }
-        </div>
-      }
-    </div>
+          <div class="suggestion-footer">
+            <button class="add-lugar-suggestion-full" (click)="openAddLugarModal()">
+              <i class="pi pi-plus"></i> Agregar nuevo lugar
+            </button>
+          </div>
+        }
+      </div>
+    }
   </div>
+</div>
 
   <!-- ============================================================ -->
   <!-- 📋 SIDEBAR - RouteDetails o RouteEditor                      -->
