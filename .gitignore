@@ -12,6 +12,7 @@ yarn-error.log
 # Angular cache
 /.angular
 /.cache
+.angular/cache/
 
 # IDE files
 .idea/
