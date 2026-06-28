@@ -2,6 +2,7 @@ import { Component, input, inject, signal, computed, OnInit, effect, OnDestroy, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { Router } from '@angular/router'; // 👈 AGREGAR
 import { RouteService } from '../../../core/services/route.service';
 import { SimulationService } from '../../../core/services/simulation.service';
 import { GamificationService } from '../../../core/services/gamification.service';
@@ -13,15 +14,11 @@ import {
 } from '../../../core/models/transit.models';
 import { SINDICATOS_MOCK } from '../../../data/mock-data';
 
-// 📦 Interfaz para los datos del mapa
 export interface MapData {
   polyline: string;
   stops: Parada[];
   color: string;
 }
-
-
-
 
 @Component({
   selector: 'app-route-details',
@@ -32,25 +29,26 @@ export interface MapData {
 })
 export class RouteDetailsComponent implements OnInit, OnDestroy {
   // ============================================================
-  // 1. INPUT Y OUTPUT - SOLO AGREGAMOS ESTO
+  // 1. INPUT Y OUTPUT
   // ============================================================
   route = input.required<Ruta>();
-  mapDataChanged = output<{ polyline: string; stops: Parada[]; color: string }>(); // 🔥 NUEVO
-  directionChanged = output<'ida' | 'vuelta'>(); // 🔥 NUEVO
+  mapDataChanged = output<{ polyline: string; stops: Parada[]; color: string }>();
+  directionChanged = output<'ida' | 'vuelta'>();
 
   // ============================================================
-  // 2. SERVICIOS (IGUAL)
+  // 2. SERVICIOS
   // ============================================================
   readonly routeService = inject(RouteService);
   readonly simulationService = inject(SimulationService);
   readonly gamificationService = inject(GamificationService);
+  private router = inject(Router); // 👈 AGREGAR
 
   // ============================================================
-  // 3. ESTADO (TODO IGUAL)
+  // 3. ESTADO
   // ============================================================
   isExpanded = signal(false);
-  activeTab = signal<'stops' | 'comments' | 'history'>('stops');
-  activeDirection = signal<'ida' | 'vuelta'>('ida'); // ✅ ESTO SIGUE IGUAL
+  activeTab = signal<'stops' | 'comments'>('stops');
+  activeDirection = signal<'ida' | 'vuelta'>('ida');
   
   commentText = signal('');
   commentStars = signal(5);
@@ -63,46 +61,43 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   commentSubmittedMsg = signal('');
 
   // ============================================================
-  // 4. COMPUTADAS (TODO IGUAL)
+  // 4. COMPUTADAS
   // ============================================================
   sortedHistory = computed(() => {
     return [...this.historyVersions()].sort((a, b) => b.version - a.version);
   });
 
   // ============================================================
-  // 5. MAPA DE TIPOS (IGUAL)
+  // 5. MAPA DE TIPOS
   // ============================================================
   private readonly transitLabelsMap: Record<number, string> = {
-    1: 'Minibús Paceño',
-    2: 'Trufi Compartido Express',
-    3: 'Mi Teleférico (Línea por Cable)',
-    4: 'PumaKatari / ChikiTiti',
-    5: 'Micro Tradicional / Dodge'
+    1: 'Minibús',
+    2: 'Trufi',
+    3: 'Teleférico',
+    4: 'PumaKatari',
+    5: 'Micro'
   };
 
   // ============================================================
-  // 6. EFECTO - IGUAL PERO AGREGAMOS emitMapData()
+  // 6. EFECTO
   // ============================================================
   private routeEffect = effect(() => {
     const r = this.route();
     if (r?.id) {
       this.loadComments();
       this.loadHistory();
-      //this.activeDirection.set('ida');
       const mobile = window.innerWidth < 768;
       if (mobile) {
         this.isExpanded.set(false);
       } else {
         this.isExpanded.set(true);
       }
-      
-      // 🔥 SOLO AGREGAMOS ESTA LÍNEA
       this.emitMapData();
     }
   });
 
   // ============================================================
-  // 7. CICLO DE VIDA (IGUAL)
+  // 7. CICLO DE VIDA
   // ============================================================
   ngOnInit() {
     this.loadComments();
@@ -114,14 +109,11 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 8. 🔥 NUEVO: EMITIR DATOS AL MAPA (3 MÉTODOS NUEVOS)
+  // 8. EMITIR DATOS AL MAPA
   // ============================================================
-  
-  // Método para emitir los datos al mapa
   private emitMapData() {
     const r = this.route();
     const direction = this.activeDirection();
-    
     
     if (!r) return;
     
@@ -133,7 +125,6 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
       ? (r.paradas || []) 
       : (r.paradasVuelta || r.paradas || []);
     
-      
     this.mapDataChanged.emit({
       polyline: polyline,
       stops: stops,
@@ -141,19 +132,17 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // 🔥 NUEVO: Este método se llama cuando cambia la dirección
-  // Lo conectaremos en el HTML
+  // ============================================================
+  // 9. CAMBIAR DIRECCIÓN
+  // ============================================================
   onDirectionChange(direction: 'ida' | 'vuelta') {
-    
     this.activeDirection.set(direction);
-
-    
-    this.emitMapData(); // 🔥 Emitir al mapa cuando cambia dirección
+    this.emitMapData();
     this.directionChanged.emit(direction);
   }
 
   // ============================================================
-  // 9. MÉTODOS DE ACCESO (TODOS IGUALES)
+  // 10. MÉTODOS DE ACCESO
   // ============================================================
   getStops(): Parada[] {
     const r = this.route();
@@ -197,7 +186,7 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 10. CARGA DE DATOS (TODO IGUAL)
+  // 11. CARGA DE DATOS
   // ============================================================
   loadComments() {
     const r = this.route();
@@ -232,7 +221,7 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 11. UTILIDADES (TODO IGUAL)
+  // 12. UTILIDADES VISUALES
   // ============================================================
   getHeaderGradient(color: string): string {
     return `linear-gradient(160deg, ${color}cc 0%, ${color} 100%)`;
@@ -256,70 +245,19 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 12. SIMULACIÓN (TODO IGUAL)
+  // 13. CERRAR CARD Y LIMPIAR MAPA
   // ============================================================
-  toggleSimulation() {
-    const r = this.route();
-    if (this.simulationService.simulatingRouteId() === r.id) {
-      this.simulationService.stopSimulation();
-    } else {
-      this.simulationService.startSimulation(r.id);
-    }
-  }
-
-  isSimulating(): boolean {
-    return this.simulationService.simulatingRouteId() === this.route().id;
+  closeDetails() {
+    this.mapDataChanged.emit({
+      polyline: '',
+      stops: [],
+      color: '#94a3b8'
+    });
+    this.routeService.closeDetails();
   }
 
   // ============================================================
-  // 13. ELIMINAR (TODO IGUAL)
-  // ============================================================
-  confirmDelete() {
-    this.showConfirmDelete.set(true);
-  }
-
-  cancelDelete() {
-    this.showConfirmDelete.set(false);
-  }
-
-deleteAndClose() {
-  const r = this.route();
-  this.routeService.deleteRoute(r.id).subscribe({
-    next: () => {
-      // Limpiar mapa y cerrar
-      this.mapDataChanged.emit({
-        polyline: '',
-        stops: [],
-        color: '#94a3b8'
-      });
-      this.routeService.closeDetails();
-      this.gamificationService.triggerExpGain(2, 'Ruta eliminada');
-      this.showConfirmDelete.set(false);
-    },
-    error: (err) => {
-      console.error('Error al eliminar ruta', err);
-      this.showConfirmDelete.set(false);
-    }
-  });
-}
-
-  // ============================================================
-// CERRAR CARD Y LIMPIAR MAPA
-// ============================================================
-closeDetails() {
-  // Emitir datos vacíos para limpiar el mapa
-  this.mapDataChanged.emit({
-    polyline: '',
-    stops: [],
-    color: '#94a3b8'
-  });
-  
-  // Cerrar el card
-  this.routeService.closeDetails();
-}
-
-  // ============================================================
-  // 14. COMENTARIOS (TODO IGUAL)
+  // 14. COMENTARIOS
   // ============================================================
   submitComment(e?: Event) {
     if (e) e.preventDefault();
@@ -344,24 +282,14 @@ closeDetails() {
   }
 
   // ============================================================
-  // 15. HISTORIAL (TODO IGUAL)
+  // 15. EXPANDIR / COLAPSAR
   // ============================================================
-  restoreVersion(versionNumber: number) {
-    const r = this.route();
-    this.routeService.restoreVersion(r.id, versionNumber).subscribe({
-      next: () => {
-        this.gamificationService.triggerExpGain(1, 'Versión restaurada');
-        this.routeService.refreshRoute(r.id);
-        this.loadHistory();
-      },
-      error: (err) => {
-        console.error('Error al restaurar versión', err);
-      }
-    });
+  toggleExpand() {
+    this.isExpanded.update(v => !v);
   }
 
   // ============================================================
-  // 16. MANEJAR CLICK EN PARADA (TODO IGUAL)
+  // 16. MANEJAR CLICK EN PARADA
   // ============================================================
   onStopSelect(stop: Parada) {
     console.log('Parada seleccionada:', stop);
@@ -369,12 +297,5 @@ closeDetails() {
 
   onStopHover(stop: Parada | null) {
     console.log('Hover parada:', stop);
-  }
-
-  // ============================================================
-  // 17. EXPANDIR / COLAPSAR (TODO IGUAL)
-  // ============================================================
-  toggleExpand() {
-    this.isExpanded.update(v => !v);
   }
 }

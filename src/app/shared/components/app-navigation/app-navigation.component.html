@@ -1,0 +1,125 @@
+<!-- ============================================================ -->
+<!-- 🖥️ WEB - Botones en barra superior                          -->
+<!-- ============================================================ -->
+<div class="web-buttons">
+  <button class="web-btn" [class.active]="showLineSearch()" (click)="toggleLineSearch()">
+    <i class="pi pi-route"></i> Líneas
+  </button>
+  <button class="web-btn" [class.active]="showAppDialog()" (click)="toggleAppDialog()">
+    <i class="pi pi-mobile"></i> App
+  </button>
+  <button class="web-btn" [class.active]="showDevDialog()" (click)="toggleDevDialog()">
+    <i class="pi pi-code"></i> Devs
+  </button>
+  <button class="web-btn admin-web-btn" (click)="goToAdmin()" *ngIf="authService.isAuthenticated()">
+    <i class="pi pi-cog"></i> Admin
+  </button>
+</div>
+
+<!-- ============================================================ -->
+<!-- 📱 TABS - Móvil (barra inferior)                             -->
+<!-- ============================================================ -->
+<div class="mobile-tabs">
+  <button class="tab-item" [class.active]="showLineSearch()" (click)="toggleLineSearch()">
+    <i class="pi pi-route"></i><span>Líneas</span>
+  </button>
+  <button class="tab-item" [class.active]="showAppDialog()" (click)="toggleAppDialog()">
+    <i class="pi pi-mobile"></i><span>App</span>
+  </button>
+  <button class="tab-item" [class.active]="showDevDialog()" (click)="toggleDevDialog()">
+    <i class="pi pi-code"></i><span>Devs</span>
+  </button>
+  <button class="tab-item admin-tab" (click)="goToAdmin()" *ngIf="authService.isAuthenticated()">
+    <i class="pi pi-cog"></i><span>Admin</span>
+  </button>
+</div>
+
+<!-- ============================================================ -->
+<!-- 🔍 MODAL: BUSCADOR DE LÍNEAS                                 -->
+<!-- ============================================================ -->
+@if (showLineSearch()) {
+  <div class="modal-overlay" (click)="closeLineSearch()">
+    <div class="modal-content line-search-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="pi pi-route"></i> Buscar líneas</h3>
+        <button class="modal-close" (click)="closeLineSearch()"><i class="pi pi-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="search-box" style="width: 100%;">
+          <i class="pi pi-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Buscar línea de minibus, trufi o bus..." [(ngModel)]="routeService.filters().search" (ngModelChange)="routeService.filters.update(f => ({...f, search: $event}))" autofocus />
+          <button *ngIf="routeService.filters().search" class="search-clear-btn" (click)="routeService.filters.update(f => ({...f, search: ''}))"><i class="pi pi-times"></i></button>
+        </div>
+        <div class="line-results">
+          @if (routeService.filteredRoutes().length === 0) {
+            <div class="empty-state-modal"><i class="pi pi-search-minus"></i><p>No se encontraron líneas</p></div>
+          } @else {
+            @for (route of routeService.filteredRoutes(); track route.id) {
+              <div class="line-result-item" (click)="selectRoute(route)">
+                <span class="line-result-badge" [style.backgroundColor]="route.color">{{ route.codigo }}</span>
+                <div class="line-result-info">
+                  <span class="line-result-name">{{ route.nombreRuta }}</span>
+                  <span class="line-result-desc">{{ getTransitName(route) }} • {{ route.distanciaKm }} km</span>
+                </div>
+                <i class="pi pi-chevron-right"></i>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============================================================ -->
+<!-- 📱 MODAL: APLICACIÓN                                        -->
+<!-- ============================================================ -->
+@if (showAppDialog()) {
+  <div class="modal-overlay" (click)="closeAppDialog()">
+    <div class="modal-content app-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="pi pi-mobile"></i> Descargar App</h3>
+        <button class="modal-close" (click)="closeAppDialog()"><i class="pi pi-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="app-hero">
+          <i class="pi pi-mobile"></i>
+          <h3>¡Lleva el transporte en tu bolsillo!</h3>
+          <p>Disponible para Android y iOS</p>
+        </div>
+        <div class="app-features">
+          <div class="app-feature"><i class="pi pi-check-circle"></i><span>Ver rutas en tiempo real</span></div>
+          <div class="app-feature"><i class="pi pi-check-circle"></i><span>Notificaciones de llegada</span></div>
+          <div class="app-feature"><i class="pi pi-check-circle"></i><span>Reporta incidentes</span></div>
+          <div class="app-feature"><i class="pi pi-check-circle"></i><span>Gana experiencia y badges</span></div>
+        </div>
+        <div class="app-download-buttons">
+          <button class="download-btn android-btn"><i class="pi pi-android"></i> Descargar para Android</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============================================================ -->
+<!-- 👨‍💻 MODAL: DESARROLLADORES                                   -->
+<!-- ============================================================ -->
+@if (showDevDialog()) {
+  <div class="modal-overlay" (click)="closeDevDialog()">
+    <div class="modal-content dev-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="pi pi-code"></i> Desarrolladores</h3>
+        <button class="modal-close" (click)="closeDevDialog()"><i class="pi pi-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="dev-hero"><i class="pi pi-users"></i><h3>Equipo de Desarrollo</h3><p>Hecho con ❤️ en Bolivia</p></div>
+        <div class="dev-list">
+          <div class="dev-card"><div class="dev-avatar">V</div><div class="dev-info"><span class="dev-name">Vico G.M.</span><span class="dev-role">Desarrollador Principal</span><span class="dev-email">vicogm@email.com</span></div></div>
+          <div class="dev-card"><div class="dev-avatar" style="background: #8b5cf6;">C</div><div class="dev-info"><span class="dev-name">Carlos C.</span><span class="dev-role">Frontend Developer</span><span class="dev-email">carlos@email.com</span></div></div>
+          <div class="dev-card"><div class="dev-avatar" style="background: #10b981;">M</div><div class="dev-info"><span class="dev-name">María F.</span><span class="dev-role">UX/UI Designer</span><span class="dev-email">maria@email.com</span></div></div>
+        </div>
+        <div class="dev-footer"><p>Versión 1.0.0</p><p>© 2026 Comollego - Todos los derechos reservados</p></div>
+      </div>
+    </div>
+  </div>
+}

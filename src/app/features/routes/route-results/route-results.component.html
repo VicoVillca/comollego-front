@@ -1,0 +1,61 @@
+<div class="route-results" [class.collapsed]="isCollapsed()">
+  
+  <!-- HEADER - Siempre visible -->
+  <div class="results-header">
+    <div class="results-header-left">
+      <span class="results-title">
+        <i class="pi pi-list"></i>
+        Resultados ({{ totalResultados }})
+      </span>
+    </div>
+    <div class="results-header-actions">
+      <!-- Botón Expandir/Colapsar - Solo visible si hay más de 0 resultados -->
+      @if (totalResultados > 0) {
+        <button class="expand-btn" (click)="toggleCollapse()" [title]="isCollapsed() ? 'Expandir' : 'Colapsar'">
+          <i class="pi" [class.pi-chevron-down]="isCollapsed()" [class.pi-chevron-up]="!isCollapsed()"></i>
+        </button>
+      }
+      <!-- Botón Cerrar -->
+      <button class="close-btn" (click)="close()" title="Cerrar">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING - Siempre visible cuando está cargando -->
+  @if (isLoadingResultados) {
+    <div class="loading-results">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Buscando las mejores rutas...</span>
+    </div>
+  }
+
+  <!-- EMPTY - Siempre visible cuando no hay resultados -->
+  @if (!isLoadingResultados && isEmpty) {
+    <div class="empty-results">
+      <i class="pi pi-inbox"></i>
+      <p>No se encontraron rutas</p>
+      <small>Intenta con otro origen o destino</small>
+    </div>
+  }
+
+  <!-- CONTENIDO - Solo visible cuando NO está colapsado Y hay resultados -->
+  @if (!isCollapsed() && !isLoadingResultados && totalResultados > 0) {
+    <div class="results-list">
+      @for (resultado of resultados(); track resultado.id) {
+        <div class="result-item" (click)="selectRoute(resultado)">
+          <div class="result-item-left">
+            <div class="result-info">
+              <span class="result-name">{{getIcono(resultado.tipoTransporte)}} {{ resultado.nombre }}</span>
+            </div>
+          </div>
+          <div class="result-item-right">
+            <span class="result-distance">📍 {{ resultado.distanciaKm }} km</span>
+            <span class="result-time">⏱️ {{ resultado.duracionMin }} min</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>

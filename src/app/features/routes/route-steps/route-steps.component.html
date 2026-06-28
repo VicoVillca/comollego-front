@@ -1,0 +1,58 @@
+<div class="route-steps">
+  
+  <!-- HEADER -->
+  <div class="steps-header">
+    <div class="steps-header-left">
+      <button class="back-btn" (click)="back()" title="Volver">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      <span class="steps-title">
+        Pasos del viaje
+      </span>
+    </div>
+    <button class="close-btn" (click)="close()" title="Cerrar">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  @if (ruta(); as ruta) {
+    <!-- INFO DE LA RUTA -->
+    <div class="route-info">
+      <div class="route-info-header">
+        {{ getIconoTransporte(ruta.tipoTransporte) }} 
+        <span class="route-name">{{ ruta.nombre }}</span>
+        <span class="route-type">⏱️ {{ ruta.duracionMin }} min</span>
+      </div>
+    </div>
+
+    <!-- LISTA DE PASOS -->
+    @if (ruta.pasos && ruta.pasos.length > 0) {
+      <div class="steps-list">
+        @for (paso of ruta.pasos; track $index) {
+          <div class="step-item">
+            <div class="step-number">{{ $index + 1 }}</div>
+            <div class="step-content">
+              <div class="step-icon">{{ getIcono(paso.tipo) }}</div>
+              <div class="step-info">
+                <span class="step-desc">{{ paso.descripcion }}</span>
+                
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-steps">
+        <i class="pi pi-info-circle"></i>
+        <p>No hay pasos detallados disponibles</p>
+      </div>
+    }
+
+  } @else {
+    <div class="empty-state">
+      <i class="pi pi-inbox"></i>
+      <p>No hay ruta seleccionada</p>
+    </div>
+  }
+
+</div>

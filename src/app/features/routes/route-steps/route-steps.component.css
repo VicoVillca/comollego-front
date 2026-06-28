@@ -1,0 +1,376 @@
+/* ============================================================ */
+/* ROUTE STEPS                                                  */
+/* ============================================================ */
+.route-steps {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  padding: 16px 20px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.route-steps::-webkit-scrollbar {
+  width: 4px;
+}
+
+.route-steps::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.route-steps::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* ============================================================ */
+/* HEADER                                                       */
+/* ============================================================ */
+.steps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.steps-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #e2e8f0;
+}
+
+.steps-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #e2e8f0;
+}
+
+/* ============================================================ */
+/* ROUTE INFO                                                   */
+/* ============================================================ */
+.route-info {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.route-info-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.route-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.route-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.route-type {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: auto;
+}
+
+.route-metrics {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #64748b;
+  padding-left: 24px;
+}
+
+/* ============================================================ */
+/* TRIP POINTS                                                  */
+/* ============================================================ */
+.trip-points {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.trip-point {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.point-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.point-dot.green {
+  background: #10b981;
+}
+
+.point-dot.red {
+  background: #ef4444;
+}
+
+.point-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.point-name {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* ============================================================ */
+/* STEPS LIST                                                   */
+/* ============================================================ */
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.steps-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.steps-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s;
+}
+
+.step-item:hover {
+  background: #f1f5f9;
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.step-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.step-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step-desc {
+  font-size: 13px;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.step-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ============================================================ */
+/* EMPTY STATES                                                 */
+/* ============================================================ */
+.empty-steps {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+}
+
+.empty-steps i {
+  font-size: 28px;
+  color: #cbd5e1;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.empty-steps p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+}
+
+.empty-state i {
+  font-size: 40px;
+  color: #cbd5e1;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ============================================================ */
+/* SHOW MAP BUTTON                                              */
+/* ============================================================ */
+.show-map-btn {
+  width: 100%;
+  padding: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.show-map-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* ============================================================ */
+/* RESPONSIVE                                                   */
+/* ============================================================ */
+@media (max-width: 768px) {
+  .route-steps {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 60vh;
+    padding: 14px 16px;
+  }
+
+  .step-item {
+    padding: 8px 10px;
+  }
+
+  .step-desc {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .route-steps {
+    padding: 12px;
+    max-height: 70vh;
+  }
+
+  .route-info-header {
+    flex-wrap: wrap;
+  }
+
+  .route-metrics {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .trip-point {
+    font-size: 12px;
+  }
+
+  .step-content {
+    gap: 6px;
+  }
+
+  .step-icon {
+    font-size: 16px;
+  }
+
+  .step-desc {
+    font-size: 12px;
+  }
+}

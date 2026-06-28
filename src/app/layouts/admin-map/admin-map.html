@@ -1,0 +1,12 @@
+<div class="map-wrapper">
+  <div #mapContainer class="map-container" [class.editing]="mode() === 'edit'"></div>
+  
+  <div class="zoom-controls">
+    <button (click)="zoomIn()" class="zoom-btn" title="Acercar">
+      <span>+</span>
+    </button>
+    <button (click)="zoomOut()" class="zoom-btn" title="Alejar">
+      <span>−</span>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,496 @@
+/* ============================================================ */
+/* ROUTES ADMIN                                                 */
+/* ============================================================ */
+.routes-admin {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* ============================================================ */
+/* HEADER                                                       */
+/* ============================================================ */
+.routes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.routes-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.routes-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary-sm:hover {
+  background: #1d4ed8;
+}
+
+/* ============================================================ */
+/* FILTROS                                                      */
+/* ============================================================ */
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0;
+  transition: border-color 0.2s;
+}
+
+.search-box:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.search-icon {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 14px;
+  background: transparent;
+  color: #1e293b;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: #e2e8f0;
+}
+
+.filter-btn.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* ============================================================ */
+/* TABLA                                                        */
+/* ============================================================ */
+.table-wrapper {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.routes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.routes-table thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.routes-table tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.routes-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.routes-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Columnas */
+.actions-col {
+  text-align: right;
+  width: 120px;
+}
+
+.route-code {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
+
+.route-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.estado-activo { background: #d1fae5; color: #065f46; }
+.estado-mantenimiento { background: #fef3c7; color: #92400e; }
+.estado-suspendido { background: #fce4ec; color: #991b1b; }
+
+/* Acciones */
+.table-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 12px;
+}
+
+.action-btn.edit {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.action-btn.edit:hover {
+  background: #bfdbfe;
+  transform: scale(1.05);
+}
+
+.action-btn.view {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.action-btn.view:hover {
+  background: #e2e8f0;
+  transform: scale(1.05);
+}
+
+.action-btn.delete {
+  background: #fce4ec;
+  color: #dc2626;
+}
+
+.action-btn.delete:hover {
+  background: #fecaca;
+  transform: scale(1.05);
+}
+
+/* ============================================================ */
+/* ESTADOS                                                      */
+/* ============================================================ */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: #94a3b8;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.loading-state i {
+  font-size: 32px;
+  color: #3b82f6;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px !important;
+  color: #94a3b8;
+}
+
+.empty-state i {
+  font-size: 40px;
+  color: #cbd5e1;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+}
+
+/* ============================================================ */
+/* RESPONSIVE                                                   */
+/* ============================================================ */
+@media (max-width: 1024px) {
+  .routes-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .routes-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .routes-title {
+    font-size: 20px;
+  }
+
+  .btn-primary {
+    justify-content: center;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .search-box {
+    min-width: unset;
+  }
+
+  .filter-group {
+    flex-wrap: wrap;
+  }
+
+  .filter-buttons {
+    flex-wrap: wrap;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .routes-table {
+    font-size: 12px;
+    min-width: 700px;
+  }
+
+  .routes-table thead th,
+  .routes-table tbody td {
+    padding: 8px 12px;
+  }
+
+  .actions-col {
+    width: 100px;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .routes-header {
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .routes-title {
+    font-size: 18px;
+  }
+
+  .routes-subtitle {
+    font-size: 13px;
+  }
+
+  .btn-primary {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .filters-bar {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .filter-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .routes-table {
+    font-size: 11px;
+    min-width: 600px;
+  }
+
+  .routes-table thead th,
+  .routes-table tbody td {
+    padding: 6px 10px;
+  }
+
+  .route-code {
+    font-size: 10px;
+    padding: 1px 8px;
+  }
+
+  .action-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+
+  .empty-state i {
+    font-size: 32px;
+  }
+
+  .empty-state p {
+    font-size: 13px;
+  }
+}

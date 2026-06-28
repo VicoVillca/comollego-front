@@ -1,0 +1,414 @@
+/* ============================================================ */
+/* ROUTE RESULTS                                                */
+/* ============================================================ */
+.route-results {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  padding: 16px 20px;
+  max-width: 420px;
+  width: 100%;
+  transition: all 0.3s ease;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh; /* Altura máxima en desktop */
+  overflow: hidden; /* El scroll interno está en la lista */
+}
+
+.route-results.collapsed {
+  padding-bottom: 12px;
+  min-height: 60px;
+  max-height: 60px; /* Cuando está colapsado, solo el header */
+}
+
+.route-results::-webkit-scrollbar {
+  width: 4px;
+}
+
+.route-results::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.route-results::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* ============================================================ */
+/* HEADER - Siempre visible (fijo)                             */
+/* ============================================================ */
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  min-height: 40px;
+  flex-shrink: 0; /* No se encoge */
+}
+
+.results-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.results-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.results-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============================================================ */
+/* BOTÓN EXPANDIR/COLAPSAR                                      */
+/* ============================================================ */
+.expand-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.expand-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.expand-btn i {
+  transition: transform 0.3s ease;
+}
+
+/* ============================================================ */
+/* BOTÓN CERRAR                                                 */
+/* ============================================================ */
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f1f5f9;
+  color: #ef4444;
+}
+
+/* ============================================================ */
+/* LOADING                                                      */
+/* ============================================================ */
+.loading-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #94a3b8;
+  flex: 1;
+}
+
+.loading-results i {
+  font-size: 32px;
+  color: #3b82f6;
+}
+
+.loading-results span {
+  font-size: 14px;
+}
+
+/* ============================================================ */
+/* EMPTY                                                        */
+/* ============================================================ */
+.empty-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  flex: 1;
+}
+
+.empty-results i {
+  font-size: 40px;
+  color: #cbd5e1;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.empty-results p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.empty-results small {
+  font-size: 12px;
+}
+
+/* ============================================================ */
+/* LISTA DE RESULTADOS - CON SCROLL                             */
+/* ============================================================ */
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto; /* Scroll vertical */
+  flex: 1; /* Ocupa el espacio disponible */
+  padding-right: 4px;
+  animation: slideDown 0.3s ease;
+  max-height: calc(80vh - 120px); /* Altura máxima en desktop */
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar personalizado */
+.results-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.results-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.results-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.results-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0; /* No se encogen */
+}
+
+.result-item:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  transform: translateX(4px);
+}
+
+.result-item:active {
+  transform: scale(0.98);
+}
+
+.result-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.result-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.result-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.result-distance {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.result-time {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* ============================================================ */
+/* RESPONSIVE - MÓVIL CON SCROLL Y PADDING                     */
+/* ============================================================ */
+@media (max-width: 768px) {
+  .route-results {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 14px 16px 20px 16px;
+    min-height: 50px;
+    max-height: 90vh; /* 🔥 Ocupa casi toda la pantalla en móvil */
+    margin-bottom: 0;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .route-results.collapsed {
+    padding-bottom: 18px;
+    min-height: 50px;
+    max-height: 60px; /* 🔥 Cuando está colapsado en móvil */
+  }
+
+  .results-header {
+    min-height: 36px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  /* 🔥 La lista ocupa todo el espacio restante con scroll */
+  .results-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(90vh - 120px); /* 🔥 Altura dinámica para scroll */
+    padding-right: 4px;
+  }
+
+  .result-item {
+    padding: 10px 12px;
+    flex-shrink: 0;
+  }
+
+  .expand-btn,
+  .close-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .expand-btn {
+    margin-right: 2px;
+  }
+
+  .results-title {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .route-results {
+    padding: 12px 14px 24px 14px;
+    min-height: 44px;
+    max-height: 92vh; /* 🔥 Aún más altura en móvil pequeño */
+    border-radius: 12px 12px 0 0;
+  }
+
+  .route-results.collapsed {
+    padding-bottom: 20px;
+    min-height: 44px;
+    max-height: 50px;
+  }
+
+  .results-header {
+    min-height: 32px;
+  }
+
+  /* 🔥 La lista con scroll en móvil pequeño */
+  .results-list {
+    max-height: calc(92vh - 110px);
+    padding-right: 2px;
+  }
+
+  .result-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  .result-item-right {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-left: 0;
+  }
+
+  .expand-btn,
+  .close-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+
+  .results-title {
+    font-size: 13px;
+  }
+}
+
+/* ============================================================ */
+/* PARA PANTALLAS MUY PEQUEÑAS (menos de 360px)                */
+/* ============================================================ */
+@media (max-width: 360px) {
+  .route-results {
+    padding: 10px 12px 28px 12px;
+    min-height: 40px;
+    max-height: 94vh;
+  }
+
+  .route-results.collapsed {
+    padding-bottom: 24px;
+    min-height: 40px;
+    max-height: 44px;
+  }
+
+  .results-title {
+    font-size: 12px;
+  }
+
+  .results-list {
+    max-height: calc(94vh - 100px);
+  }
+
+  .expand-btn,
+  .close-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+}

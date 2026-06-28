@@ -1,0 +1,195 @@
+<div class="admin-dashboard">
+  
+  <!-- HEADER -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">Dashboard</h1>
+      <p class="dashboard-subtitle">Bienvenido de vuelta, {{ currentUser()?.name || 'Administrador' }}</p>
+    </div>
+    <div class="dashboard-actions">
+      <button class="btn-primary" routerLink="/admin/routes/create">
+        <i class="pi pi-plus"></i> Nueva Ruta
+      </button>
+    </div>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="pi pi-route"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().totalRoutes }}</span>
+        <span class="stat-label">Total Rutas</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().activeRoutes }}</span>
+        <span class="stat-label">Rutas Activas</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon orange">
+        <i class="pi pi-clock"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().maintenanceRoutes }}</span>
+        <span class="stat-label">En Mantenimiento</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon red">
+        <i class="pi pi-times-circle"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().suspendedRoutes }}</span>
+        <span class="stat-label">Suspendidas</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon purple">
+        <i class="pi pi-map-marker"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().totalStops }}</span>
+        <span class="stat-label">Paradas Totales</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon indigo">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats().sindicatos }}</span>
+        <span class="stat-label">Sindicatos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: ÚLTIMAS RUTAS -->
+  <div class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="pi pi-list"></i> Últimas Rutas
+      </h2>
+      <a class="section-link" routerLink="/admin/routes">Ver todas →</a>
+    </div>
+    
+    <div class="routes-table-wrapper">
+      <table class="routes-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Paradas</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (route of routeService.routes().slice(0, 5); track route.id) {
+            <tr>
+              <td>
+                <span class="route-code-badge" [style.background]="route.color">
+                  {{ route.codigo }}
+                </span>
+              </td>
+              <td class="route-name">{{ route.nombreRuta }}</td>
+              <td>
+                <span class="type-badge">{{ getTransitName(route.tipoTransporteId) }}</span>
+              </td>
+              <td>
+                <span class="estado-badge" [class]="getEstadoClass(route.estado)">
+                  {{ getEstadoLabel(route.estado) }}
+                </span>
+              </td>
+              <td>{{ route.paradas?.length || 0 }}</td>
+              <td>
+                <div class="table-actions">
+                  <button class="action-btn edit" routerLink="/admin/routes/edit/{{ route.id }}" title="Editar">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button class="action-btn view" routerLink="/admin/routes/{{ route.id }}" title="Ver">
+                    <i class="pi pi-eye"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-table">
+                <i class="pi pi-inbox"></i>
+                <span>No hay rutas registradas</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: ACCESOS RÁPIDOS -->
+  <div class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="pi pi-bolt"></i> Accesos Rápidos
+      </h2>
+    </div>
+    
+    <div class="quick-actions-grid">
+      <div class="quick-action" routerLink="/admin/routes/create">
+        <div class="qa-icon" style="background: #dbeafe; color: #2563eb;">
+          <i class="pi pi-plus-circle"></i>
+        </div>
+        <span class="qa-label">Crear Ruta</span>
+      </div>
+
+      <div class="quick-action" routerLink="/admin/sindicatos">
+        <div class="qa-icon" style="background: #d1fae5; color: #059669;">
+          <i class="pi pi-users"></i>
+        </div>
+        <span class="qa-label">Sindicatos</span>
+      </div>
+
+      <div class="quick-action" routerLink="/admin/lugares">
+        <div class="qa-icon" style="background: #fef3c7; color: #d97706;">
+          <i class="pi pi-map-marker"></i>
+        </div>
+        <span class="qa-label">Lugares</span>
+      </div>
+
+      <div class="quick-action" routerLink="/admin/paradas">
+        <div class="qa-icon" style="background: #fce4ec; color: #dc2626;">
+          <i class="pi pi-stop-circle"></i>
+        </div>
+        <span class="qa-label">Paradas</span>
+      </div>
+
+      <div class="quick-action" routerLink="/admin/historial">
+        <div class="qa-icon" style="background: #f3e8ff; color: #7c3aed;">
+          <i class="pi pi-history"></i>
+        </div>
+        <span class="qa-label">Historial</span>
+      </div>
+
+      <div class="quick-action" routerLink="/admin/config">
+        <div class="qa-icon" style="background: #f1f5f9; color: #64748b;">
+          <i class="pi pi-cog"></i>
+        </div>
+        <span class="qa-label">Configuración</span>
+      </div>
+    </div>
+  </div>
+
+</div>

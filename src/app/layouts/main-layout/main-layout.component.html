@@ -3,470 +3,216 @@
   <!-- ============================================================ -->
   <!-- NOTIFICACIÓN FLOTANTE                                        -->
   <!-- ============================================================ -->
-  @if (gamificationService.notification()) {
+  <!--@if (gamificationService.notification()) {
     <div class="floating-exp-banner">
       <i class="pi pi-sparkles" style="color: #fbbf24; margin-right: 8px;"></i>
       {{ gamificationService.notification() }}
     </div>
   }
+-->
+  <!-- ============================================================ -->
+  <!-- 🗺️ MAPA PÚBLICO                                             -->
+  <!-- ============================================================ -->
+  <main class="map-container-layer">
+    <app-public-map
+      [polyline]="mapPolyline()"
+      [stops]="mapStops()"
+      [color]="mapColor()"
+      [selectedLocation]="selectedLocation()"
+      [origen]="mapOrigen()"
+      [destino]="mapDestino()"
+      [rutaPolyline]="mapRutaPolyline()"
+      [rutaColor]="mapRutaColor()"
+      (stopClicked)="handleStopClick($event)"
+      (mapClicked)="handleMapClick($event.lat, $event.lng)"
+      (locationCleared)="clearSelectedLocation()"
+    ></app-public-map>
+  </main>
 
   <!-- ============================================================ -->
-  <!-- 🗺️ MAPA                                                     -->
+  <!-- 🔍 BUSCADOR DE LUGARES (CENTRADO)                           -->
   <!-- ============================================================ -->
-<!-- ============================================================ -->
-<!-- 🗺️ MAPA                                                     -->
-<!-- ============================================================ -->
-<main class="map-container-layer">
-  <app-map
-    [polyline]="mapPolyline()"
-    [stops]="mapStops()"
-    [color]="mapColor()"
-    [mode]="mapMode()"
-    [selectedLocation]="selectedLocation()"
-    (mapClick)="handleMapClick($event.lat, $event.lng)"
-    (stopClicked)="handleStopClick($event)"
-    (dataChanged)="handleMapDataChanged($event)"
-    (locationCleared)="selectedLocation.set(null)"
-  ></app-map>
-</main>
+  <div class="search-layer">
+    <div class="search-container">
 
-<!-- ============================================================ -->
-<!-- 🔍 BUSCADOR DE LUGARES (con chip de selección)              -->
-<!-- ============================================================ -->
-<div class="search-layer">
-  <div class="search-container">
-    <div class="search-box">
-      <i class="pi pi-search search-icon"></i>
-      
-      <!-- 🔥 CHIP DEL LUGAR SELECCIONADO -->
-      @if (selectedLocation()) {
-        <div class="selected-location-chip">
-          <span class="chip-icon">📍</span>
-          <span class="chip-name">{{ selectedLocation()?.nombre }}</span>
-          <button class="chip-remove" (click)="clearSelectedLocation()" title="Quitar lugar">
-            <i class="pi pi-times"></i>
-          </button>
-        </div>
-      }
-      
-      <!-- 🔥 INPUT DE BÚSQUEDA (se oculta si hay lugar seleccionado) -->
-      @if (!selectedLocation()) {
-        <input
-          type="text"
-          class="search-input"
-          placeholder="¿Donde quieres ir?"
-          [(ngModel)]="lugarSearchText"
-          (ngModelChange)="onLugarSearchChange($event)"
-          (focus)="showLugarSuggestions.set(true)"
-          (blur)="onLugarBlur()"
-        />
-      }
-      
-      <!-- Spinner de carga -->
-      @if (isLoadingLugares()) {
-        <i class="pi pi-spin pi-spinner" style="color: #3b82f6;"></i>
-      }
-      
-      <!-- CÍRCULO DE USUARIO -->
-      <button class="user-avatar-circle" (click)="toggleUserDialog()" title="Mi perfil">
-        @if (currentUser()?.pictureUrl) {
-          <img 
-            [src]="currentUser()?.pictureUrl" 
-            alt="Foto de perfil"
-            class="user-avatar-image"
+      <!-- PASO 1: SIN DESTINO → Buscador simple -->
+      @if (!destinoPreSeleccionado) {
+        <div class="search-box">
+          <i class="pi pi-search search-icon"></i>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="¿Donde quieres ir?"
+            [(ngModel)]="lugarSearchText"
+            (ngModelChange)="onLugarSearchChange($event)"
+            (focus)="showLugarSuggestions.set(true)"
+            (blur)="onLugarBlur()"
           />
-        } @else {
-          <span class="user-avatar-text">{{ currentUser()?.name?.charAt(0) || 'U' }}</span>
-        }
-      </button>
-    </div>
-
-    <!-- Sugerencias (resultados del backend) -->
-    @if (showLugarSuggestions() && lugarSearchText().trim().length >= 2 && !selectedLocation()) {
-      <div class="suggestions-dropdown">
-        @if (isLoadingLugares()) {
-          <div class="suggestion-loading">
-            <i class="pi pi-spin pi-spinner"></i>
-            <span>Buscando lugares...</span>
-          </div>
-        } @else if (filteredLugares().length === 0) {
-          <div class="suggestion-empty">
-            <i class="pi pi-search-minus"></i>
-            <span>No se encontraron lugares</span>
-            <button class="add-lugar-suggestion" (click)="openAddLugarModal()">
-              Agregar nuevo lugar
-            </button>
-          </div>
-        } @else {
-          @for (lugar of filteredLugares(); track lugar.id) {
-            <div class="suggestion-item" (click)="selectLugar(lugar)">
-              <div class="suggestion-icon">
-                <i class="pi pi-map-marker"></i>
-              </div>
-              <div class="suggestion-info">
-                <span class="suggestion-name">{{ lugar.nombre }}</span>
-                <span class="suggestion-desc">{{ lugar.ciudad }}</span>
-              </div>
-              <i class="pi pi-chevron-right suggestion-arrow"></i>
-            </div>
+          @if (isLoadingLugares()) {
+            <i class="pi pi-spin pi-spinner" style="color: #3b82f6;"></i>
           }
-          <div class="suggestion-footer">
-            <button class="add-lugar-suggestion-full" (click)="openAddLugarModal()">
-              <i class="pi pi-plus"></i> Agregar nuevo lugar
-            </button>
-          </div>
-        }
-      </div>
-    }
-  </div>
-</div>
-
-  <!-- ============================================================ -->
-  <!-- 📋 SIDEBAR - RouteDetails o RouteEditor                      -->
-  <!-- ============================================================ -->
-  @if (routeService.selectedRoute() || routeService.isCreating() || routeService.isEditing()) {
-    <section class="sidebar-layer">
-      @if (routeService.isCreating() || routeService.isEditing()) {
-        <app-route-editor
-          [route]="routeService.isEditing() ? routeService.selectedRoute() : null"
-          [activeEditDraft]="activeEditDraft()"
-          (save)="handleSaveRoute($event)"
-          (cancel)="handleCancelEdit()"
-          (updateActiveDraft)="activeEditDraft.set($event)"
-          (mapDataChanged)="handleMapDataFromEditor($event)"
-          (directionChanged)="onDirectionChanged($event)"
-        ></app-route-editor>
-      } @else if (routeService.selectedRoute()) {
-        <app-route-details
-          [route]="routeService.selectedRoute()!"
-          (mapDataChanged)="handleMapDataFromDetails($event)"
-        ></app-route-details>
-      }
-    </section>
-  }
-
-  <!-- ============================================================ -->
-  <!-- 🟢 BOTONES FLOTANTES (Líneas, App, Desarrolladores)         -->
-  <!-- ============================================================ -->
-  <div class="floating-buttons">
-    <!-- Botón Líneas -->
-    <button 
-      class="floating-btn lines-btn"
-      [class.active]="showLineSearch()"
-      (click)="toggleLineSearch()"
-      title="Buscar líneas"
-    >
-      <i class="pi pi-route"></i>
-      <span class="btn-label">Líneas</span>
-    </button>
-
-    <!-- Botón Aplicación -->
-    <button 
-      class="floating-btn app-btn"
-      [class.active]="showAppDialog()"
-      (click)="toggleAppDialog()"
-      title="Descargar App"
-    >
-      <i class="pi pi-mobile"></i>
-      <span class="btn-label">App</span>
-    </button>
-
-    <!-- Botón Desarrolladores -->
-    <button 
-      class="floating-btn dev-btn"
-      [class.active]="showDevDialog()"
-      (click)="toggleDevDialog()"
-      title="Desarrolladores"
-    >
-      <i class="pi pi-code"></i>
-      <span class="btn-label">Devs</span>
-    </button>
-  </div>
-
-<!-- ============================================================ -->
-<!-- 👤 MODAL: USUARIO (perfil)                                   -->
-<!-- ============================================================ -->
-@if (showUserDialog()) {
-  <div class="modal-overlay" (click)="toggleUserDialog()">
-    <div class="modal-content user-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3><i class="pi pi-user"></i> Mi Perfil</h3>
-        <button class="modal-close" (click)="toggleUserDialog()">
-          <i class="pi pi-times"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <!-- ============================================================ -->
-        <!-- 🔥 PERFIL DEL USUARIO CON FOTO                               -->
-        <!-- ============================================================ -->
-        <div class="user-profile-header">
-          <!-- Avatar con foto -->
-          <div class="user-profile-avatar">
-            @if (currentUser()?.pictureUrl) {
-              <img 
-                [src]="currentUser()?.pictureUrl" 
-                alt="Foto de perfil"
-                class="user-profile-image"
-              />
-            } @else {
-              {{ currentUser()?.name?.charAt(0) || 'U' }}
-            }
-          </div>
-          <div>
-            <div class="user-profile-name">{{ currentUser()?.name || 'Usuario' }}</div>
-            <div class="user-profile-email">{{ currentUser()?.email || 'usuario@email.com' }}</div>
-          </div>
         </div>
-        
-        <!-- ============================================================ -->
-        <!-- EXPERIENCIA                                                  -->
-        <!-- ============================================================ -->
-        <div class="user-exp-section">
-          <div class="user-exp-label">Experiencia</div>
-          <div class="user-exp-bar">
-            <div class="user-exp-fill" style="width: 75%;"></div>
-          </div>
-          <div class="user-exp-text">Nivel 3 • 750/1000 XP</div>
-        </div>
-        
-        <!-- ============================================================ -->
-        <!-- MENÚ DE USUARIO                                              -->
-        <!-- ============================================================ -->
-        <div class="user-menu">
-          <div class="user-menu-item">
-            <i class="pi pi-star" style="color: #f59e0b;"></i>
-            <span>Mis rutas favoritas</span>
-            <i class="pi pi-chevron-right" style="margin-left: auto; color: #cbd5e1;"></i>
-          </div>
-          <div class="user-menu-item">
-            <i class="pi pi-history" style="color: #3b82f6;"></i>
-            <span>Historial de viajes</span>
-            <i class="pi pi-chevron-right" style="margin-left: auto; color: #cbd5e1;"></i>
-          </div>
-          <div class="user-menu-item">
-            <i class="pi pi-cog" style="color: #64748b;"></i>
-            <span>Configuración</span>
-            <i class="pi pi-chevron-right" style="margin-left: auto; color: #cbd5e1;"></i>
-          </div>
-          <div class="user-menu-item logout-item" (click)="logout()">
-            <i class="pi pi-sign-out" style="color: #ef4444;"></i>
-            <span style="color: #ef4444;">Cerrar sesión</span>
-            <i class="pi pi-chevron-right" style="margin-left: auto; color: #cbd5e1;"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-}
 
-  <!-- ============================================================ -->
-  <!-- 🔍 MODAL: BUSCADOR DE LÍNEAS                                 -->
-  <!-- ============================================================ -->
-  @if (showLineSearch()) {
-    <div class="modal-overlay" (click)="toggleLineSearch()">
-      <div class="modal-content line-search-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3><i class="pi pi-route"></i> Buscar líneas</h3>
-          <button class="modal-close" (click)="toggleLineSearch()">
-            <i class="pi pi-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="search-box" style="width: 100%;">
-            <i class="pi pi-search search-icon"></i>
-            <input
-              type="text"
-              class="search-input"
-              placeholder="Buscar línea de minibus, trufi o bus..."
-              [(ngModel)]="routeService.filters().search"
-              (ngModelChange)="routeService.filters.update(f => ({...f, search: $event}))"
-              autofocus
-            />
-            <button 
-              *ngIf="routeService.filters().search" 
-              class="search-clear-btn"
-              (click)="routeService.filters.update(f => ({...f, search: ''}))"
-            >
-              <i class="pi pi-times"></i>
-            </button>
-          </div>
-
-          <div class="line-results">
-            @if (routeService.filteredRoutes().length === 0) {
-              <div class="empty-state-modal">
+        <!-- Sugerencias de lugares -->
+        @if (showLugarSuggestions() && lugarSearchText().trim().length >= 2) {
+          <div class="suggestions-dropdown">
+            @if (isLoadingLugares()) {
+              <div class="suggestion-loading">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Buscando lugares...</span>
+              </div>
+            } @else if (filteredLugares().length === 0) {
+              <div class="suggestion-empty">
                 <i class="pi pi-search-minus"></i>
-                <p>No se encontraron líneas</p>
-                <button class="register-btn-sm" (click)="routeService.startCreating(); toggleLineSearch()">
-                  <i class="pi pi-plus"></i> Registrar nueva línea
-                </button>
+                <span>No se encontraron lugares</span>
               </div>
             } @else {
-              @for (route of routeService.filteredRoutes(); track route.id) {
-                <div class="line-result-item" (click)="selectRoute(route)">
-                  <span class="line-result-badge" [style.backgroundColor]="route.color">
-                    {{ route.codigo }}
-                  </span>
-                  <div class="line-result-info">
-                    <span class="line-result-name">{{ route.nombreRuta }}</span>
-                    <span class="line-result-desc">
-                      {{ getTransitName(route) }} • {{ route.distanciaKm }} km
-                    </span>
+              @for (lugar of filteredLugares(); track lugar.id) {
+                <div class="suggestion-item" (click)="selectLugar(lugar)">
+                  <div class="suggestion-icon"><i class="pi pi-map-marker"></i></div>
+                  <div class="suggestion-info">
+                    <span class="suggestion-name">{{ lugar.nombre }}</span>
+                    <span class="suggestion-desc">{{ lugar.ciudad }}</span>
                   </div>
-                  <i class="pi pi-chevron-right"></i>
+                  <i class="pi pi-chevron-right suggestion-arrow"></i>
                 </div>
               }
             }
           </div>
+        }
+      }
+
+      <!-- PASO 2: CON DESTINO → Mostrar chip + ORIGEN -->
+      @if (destinoPreSeleccionado) {
+        <!-- PANEL DE ORIGEN -->
+        <div class="origen-panel">
+          <div class="origen-panel-content">
+            <span class="selected-chip">
+              
+              <div class="destino-chip">
+                <span class="chip-icon">🏁</span>
+                <span class="chip-label">{{ truncateText(destinoSeleccionadoEnBuscador()?.nombre) }}</span>
+                <button class="chip-remove" (click)="clearSelectedLocation()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </span>
+            
+
+            @if (origenSeleccionado()){
+              
+              <span class="selected-chip">
+                
+                <div class="origen-chip">
+                  <span class="chip-icon">🚶</span>
+                  <span class="chip-label">{{ truncateText(origenSeleccionado()?.nombre) }}</span>
+                  <button class="chip-remove" (click)="clearSelectedLocation()">
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
+              </span>
+              
+            }
+
+            @if (!origenSeleccionado()) {
+            
+              <div class="origen-label">
+              <span class="origen-icon">🚶</span>
+              <span class="step-title">¿Donde te encuentras?</span>
+            </div>
+            
+            <div class="search-input-wrapper">
+              <input
+                type="text"
+                class="search-input"
+                placeholder="Buscar lugar o seleccionar en el mapa..."
+                [(ngModel)]="origenSearchText"
+                (ngModelChange)="onOrigenSearchChange($event)"
+                autofocus
+              />
+              <div class="input-actions">
+                <button class="action-btn gps-btn" (click)="usarGPSorigen()" title="Usar mi ubicación">
+                  <i class="pi pi-compass"></i>
+                </button>
+                <button class="action-btn map-btn" (click)="seleccionarOrigenEnMapa()" title="Seleccionar en el mapa">
+                  <i class="pi pi-map-marker"></i>
+                </button>
+              </div>
+            </div>
+          }
+
+            <!-- Sugerencias de origen -->
+            @if (sugerenciasOrigen().length > 0) {
+              <div class="suggestions">
+                @for (lugar of sugerenciasOrigen(); track lugar.id) {
+                  <div class="suggestion-item" (click)="selectOrigen(lugar)">
+                    <i class="pi pi-map-marker"></i>
+                    <span>{{ lugar.nombre }}</span>
+                    <small>{{ lugar.ciudad }}</small>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (isLoadingOrigen()) {
+              <div class="loading-suggestions">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Buscando lugares...</span>
+              </div>
+            }
+
+          </div>
         </div>
-      </div>
+      }
+
     </div>
+  </div>
+
+<!-- PANEL DE RESULTADOS -->
+@if (showRouteResults() && resultadosBusqueda().length > 0) {
+  <div class="route-results-panel">
+    <app-route-results
+      [resultados]="resultadosBusqueda()"
+      [isLoading]="false"
+      [origenNombre]="origenNombre"
+      [destinoNombre]="destinoNombre"
+      (onSelectRoute)="handleSelectRoute($event)"
+      (onClose)="cerrarResultadosConX()"
+      (onBack)="cerrarResultadosConX()"
+    ></app-route-results>
+  </div>
+}
+
+<!-- PANEL DE PASOS -->
+@if (showRouteSteps()) {
+  <div class="route-steps-panel">
+    <app-route-steps
+      [ruta]="rutaSeleccionada"
+      [origenNombre]="origenNombre"
+      [destinoNombre]="destinoNombre"
+      (onClose)="cerrarResultadosConX()"
+      (onBack)="handleBackFromSteps()"
+      (onShowInMap)="handleShowInMap()"
+    ></app-route-steps>
+  </div>
+}
+
+  <!-- ============================================================ -->
+  <!-- 📋 SIDEBAR - Detalles de la ruta seleccionada               -->
+  <!-- ============================================================ -->
+  @if (routeService.selectedRoute() && !destinoPreSeleccionado && !showRouteSteps() && !showRouteResults()) {
+    <section class="sidebar-layer">
+      <app-route-details
+        [route]="routeService.selectedRoute()!"
+        (mapDataChanged)="handleMapDataFromDetails($event)"
+        (directionChanged)="onDirectionChanged($event)"
+      ></app-route-details>
+    </section>
   }
 
   <!-- ============================================================ -->
-  <!-- 📱 MODAL: APLICACIÓN (Descargar)                             -->
+  <!-- 🧭 NAVEGACIÓN (componente separado)                          -->
   <!-- ============================================================ -->
-  @if (showAppDialog()) {
-    <div class="modal-overlay" (click)="toggleAppDialog()">
-      <div class="modal-content app-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3><i class="pi pi-mobile"></i> Descargar App</h3>
-          <button class="modal-close" (click)="toggleAppDialog()">
-            <i class="pi pi-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="app-hero">
-            <i class="pi pi-mobile"></i>
-            <h3>¡Lleva el transporte en tu bolsillo!</h3>
-            <p>Disponible para Android y iOS</p>
-          </div>
-          
-          <div class="app-features">
-            <div class="app-feature">
-              <i class="pi pi-check-circle"></i>
-              <span>Ver rutas en tiempo real</span>
-            </div>
-            <div class="app-feature">
-              <i class="pi pi-check-circle"></i>
-              <span>Notificaciones de llegada</span>
-            </div>
-            <div class="app-feature">
-              <i class="pi pi-check-circle"></i>
-              <span>Reporta incidentes</span>
-            </div>
-            <div class="app-feature">
-              <i class="pi pi-check-circle"></i>
-              <span>Gana experiencia y badges</span>
-            </div>
-          </div>
-          
-          <div class="app-download-buttons">
-            <button class="download-btn android-btn">
-              <i class="pi pi-android"></i> Descargar para Android
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- ============================================================ -->
-  <!-- 👨‍💻 MODAL: DESARROLLADORES                                   -->
-  <!-- ============================================================ -->
-  @if (showDevDialog()) {
-    <div class="modal-overlay" (click)="toggleDevDialog()">
-      <div class="modal-content dev-modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3><i class="pi pi-code"></i> Desarrolladores</h3>
-          <button class="modal-close" (click)="toggleDevDialog()">
-            <i class="pi pi-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="dev-hero">
-            <i class="pi pi-users"></i>
-            <h3>Equipo de Desarrollo</h3>
-            <p>Hecho con ❤️ en Bolivia</p>
-          </div>
-          
-          <div class="dev-list">
-            <div class="dev-card">
-              <div class="dev-avatar">V</div>
-              <div class="dev-info">
-                <span class="dev-name">Vico G.M.</span>
-                <span class="dev-role">Desarrollador Principal</span>
-                <span class="dev-email">vicogm@email.com</span>
-              </div>
-            </div>
-            <div class="dev-card">
-              <div class="dev-avatar" style="background: #8b5cf6;">C</div>
-              <div class="dev-info">
-                <span class="dev-name">Carlos C.</span>
-                <span class="dev-role">Frontend Developer</span>
-                <span class="dev-email">carlos@email.com</span>
-              </div>
-            </div>
-            <div class="dev-card">
-              <div class="dev-avatar" style="background: #10b981;">M</div>
-              <div class="dev-info">
-                <span class="dev-name">María F.</span>
-                <span class="dev-role">UX/UI Designer</span>
-                <span class="dev-email">maria@email.com</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="dev-footer">
-            <p>Versión 1.0.0</p>
-            <p>© 2026 Comollego - Todos los derechos reservados</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- ============================================================ -->
-  <!-- 🟢 MODAL: AGREGAR LUGAR                                     -->
-  <!-- ============================================================ -->
-  @if (showAddLugarModal()) {
-    <div class="modal-overlay" (click)="closeAddLugarModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3><i class="pi pi-plus-circle"></i> Agregar nuevo lugar</h3>
-          <button class="modal-close" (click)="closeAddLugarModal()">
-            <i class="pi pi-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label>Nombre del lugar *</label>
-            <input class="form-input" [(ngModel)]="newLugarNombre" placeholder="Ej: Plaza principal" />
-          </div>
-          <div class="form-group">
-            <label>Ciudad *</label>
-            <input class="form-input" [(ngModel)]="newLugarCiudad" placeholder="Ej: La Paz" />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Latitud *</label>
-              <input class="form-input" type="number" step="any" [(ngModel)]="newLugarLat" placeholder="-16.5000" />
-            </div>
-            <div class="form-group">
-              <label>Longitud *</label>
-              <input class="form-input" type="number" step="any" [(ngModel)]="newLugarLng" placeholder="-68.1300" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Descripción</label>
-            <textarea class="form-textarea" [(ngModel)]="newLugarDesc" placeholder="Descripción opcional..." rows="2"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="cancel-btn" (click)="closeAddLugarModal()">Cancelar</button>
-          <button class="save-btn" (click)="saveLugar()">Guardar lugar</button>
-        </div>
-      </div>
-    </div>
-  }
+  <app-navigation></app-navigation>
 
 </div>

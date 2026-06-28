@@ -1,22 +1,16 @@
-<div class="route-details" *ngIf="route() as r">
+<div class="route-details">
 
   <!-- ============================================================ -->
   <!-- CABECERA DEL CARD (siempre visible)                           -->
   <!-- ============================================================ -->
-  <div class="card-header" [style.background]="getHeaderGradient(r.color)">
+  <div class="card-header" [style.background]="getHeaderGradient(route().color)">
     <div class="card-header-left">
-      <span class="card-code" [style.color]="r.color" [style.borderColor]="r.color">
-        {{ r.codigo }}
+      <span class="card-code" [style.color]="route().color" [style.borderColor]="route().color">
+        {{ route().codigo }}
       </span>
-      <span class="route-type-tag">{{ getTransitLabel(r.tipoTransporteId) }}</span>
+      <span class="route-type-tag">{{ getTransitLabel(route().tipoTransporteId) }}</span>
     </div>
     <div class="card-header-actions">
-      <button class="icon-btn close" (click)="routeService.startEditing(r.id)" title="Editar">
-        <i class="pi pi-pencil"></i>
-      </button>
-      <button class="icon-btn close" (click)="confirmDelete()" title="Eliminar">
-        <i class="pi pi-trash"></i>
-      </button>
       <button class="icon-btn close" (click)="closeDetails()" title="Cerrar">
         <i class="pi pi-times"></i>
       </button>
@@ -28,189 +22,170 @@
   <!-- ============================================================ -->
   <div class="card-body">
 
-    <!-- ========================================================== -->
-    <!-- MODO COLAPSADO (resumen) – siempre visible al inicio         -->
-    <!-- ========================================================== -->
-    <div class="collapsed-view" *ngIf="!isExpanded()">
-      <strong> {{ r.nombreRuta }} </strong>
-      <button class="expand-btn" (click)="toggleExpand()">
-        Ver más <i class="pi pi-chevron-down"></i>
-      </button>
-    </div>
+
 
     <!-- ========================================================== -->
     <!-- MODO EXPANDIDO (detalle completo)                           -->
     <!-- ========================================================== -->
-    <div class="expanded-view" *ngIf="isExpanded()">
+    @if (isExpanded()) {
+      <div class="expanded-view">
 
-      <!-- HEADER con gradiente (detalle completo) -->
-      <div class="route-header" [style.background]="getHeaderGradient(r.color)">
-        <div class="header-content">
-          <h2 class="route-title">{{ r.nombreRuta }}</h2>
-          <div class="sindicato-info">
-            <i class="pi pi-users"></i>
-            <span class="sindicato-nombre">{{ getSindicatoName(r.sindicatoId) }}</span>
+        <!-- HEADER con gradiente -->
+        <div class="route-header" [style.background]="getHeaderGradient(route().color)">
+          <div class="header-content">
+            <h2 class="route-title">{{ route().nombreRuta }}</h2>
+            <div class="sindicato-info">
+              <i class="pi pi-users"></i>
+              <span class="sindicato-nombre">{{ getSindicatoName(route().sindicatoId) }}</span>
+            </div>
+            <div class="route-meta">
+              <span class="meta-tag">{{ getTransitLabel(route().tipoTransporteId) }}</span>
+              <span class="meta-tag estado-badge" [class]="getEstadoClass(route().estado)">
+                {{ route().estado }}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- MÉTRICAS COMPLETAS -->
-      <div class="metrics-grid">
-        <div class="metric-item">
-          <span class="m-label">Frecuencia</span>
-          <div class="m-val"><i class="pi pi-clock"></i> {{ r.intervaloMin }} min</div>
-        </div>
-        <div class="metric-item">
-          <span class="m-label">Distancia</span>
-          <div class="m-val"><i class="pi pi-map-marker"></i> {{ r.distanciaKm }} km</div>
-        </div>
-        <div class="metric-item">
-          <span class="m-label">Estrellas</span>
-          <div class="m-val"><i class="pi pi-star-fill" style="color: #f59e0b;"></i> {{ getAverageRatingDisplay() }}</div>
-        </div>
-      </div>
-
-      <!-- TABS -->
-      <div class="tabs">
-        <button class="tab-btn" [class.active]="activeTab() === 'stops'" (click)="activeTab.set('stops')">
-          <i class="pi pi-map-marker"></i> Paradas ({{ getStops().length }})
-        </button>
-        <button class="tab-btn" [class.active]="activeTab() === 'comments'" (click)="activeTab.set('comments')">
-          <i class="pi pi-comment"></i> Comentarios ({{ comments().length }})
-        </button>
-      </div>
-
-      <!-- CONTENIDO DE TABS (scroll) -->
-      <div class="scroll-content">
-        <!-- ===== TAB: PARADAS ===== -->
-        <!-- ===== TAB: PARADAS ===== -->
-@if (activeTab() === 'stops') {
-  <div>
-    <div class="stops-header">
-      @if (r.polylineVuelta) {
-        <span class="route-type-badge">Trazado Independiente</span>
-      }
-    </div>
-    <div class="direction-toggle">
-      <button class="dir-btn" [class.active]="activeDirection() === 'ida'" (click)="onDirectionChange('ida')">Ida (Ir)</button>
-      <button class="dir-btn" [class.active]="activeDirection() === 'vuelta'" (click)="onDirectionChange('vuelta')">Vuelta (Volver)</button>
-    </div>
-    
-    @if (getStops().length > 0) {
-      <!-- NUEVO: Lista estilo editor con números -->
-      <div class="stops-list-editor-style">
-        @for (stop of getStops(); track $index) {
-          <div 
-            class="stop-item-editor" 
-            (click)="onStopSelect(stop)" 
-            (mouseenter)="onStopHover(stop)" 
-            (mouseleave)="onStopHover(null)"
-          >
-            <span class="stop-number-editor">{{ $index + 1 }}</span>
-            <span class="stop-name-editor">{{ stop.nombre }}</span>
-            @if ($first) {
-              <span class="stop-terminal-editor origin">Inicio</span>
-            }
-            @if ($last && getStops().length > 1) {
-              <span class="stop-terminal-editor destination">Final</span>
-            }
-            <i class="pi pi-chevron-right stop-arrow-editor"></i>
+        <!-- MÉTRICAS -->
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <span class="m-label">Frecuencia</span>
+            <div class="m-val"><i class="pi pi-clock"></i> {{ route().intervaloMin }} min</div>
           </div>
-        }
-      </div>
-    } @else {
-      <div class="empty-state">
-        <i class="pi pi-map-marker"></i>
-        <p>Esta ruta no tiene paradas.</p>
-      </div>
-    }
-  </div>
-}
+          <div class="metric-item">
+            <span class="m-label">Distancia</span>
+            <div class="m-val"><i class="pi pi-map-marker"></i> {{ route().distanciaKm }} km</div>
+          </div>
+          <div class="metric-item">
+            <span class="m-label">Duración</span>
+            <div class="m-val"><i class="pi pi-hourglass"></i> {{ route().duracionMin }} min</div>
+          </div>
+        </div>
 
-        <!-- ===== TAB: COMENTARIOS ===== -->
-        @if (activeTab() === 'comments') {
-          <div>
-            @if (isLoadingComments()) {
-              <div class="loading-spinner">Cargando comentarios...</div>
-            } @else {
-              @if (comments().length === 0) {
-                <div class="empty-state"><i class="pi pi-comment"></i><p>No hay opiniones aún.</p></div>
-              } @else {
-                @for (comment of comments(); track comment.id) {
-                  <div class="comment-item">
-                    <div class="comment-header">
-                      <div class="comment-user">
-                        <span class="user-avatar">{{ comment.usuarioNombre?.[0] || 'U' }}</span>
-                        <div>
-                          <span class="user-name">{{ comment.usuarioNombre }}</span>
-                          <span class="user-email">{{ comment.usuarioEmail }}</span>
-                        </div>
-                      </div>
-                      <div class="comment-stars">
-                        @for (s of [1,2,3,4,5]; track s) {
-                          <span [class.filled]="s <= (comment.puntuacion || 0)">★</span>
-                        }
-                      </div>
+        <!-- TABS -->
+        <div class="tabs">
+          <button class="tab-btn" [class.active]="activeTab() === 'stops'" (click)="activeTab.set('stops')">
+            <i class="pi pi-map-marker"></i> Paradas ({{ getStops().length }})
+          </button>
+          <button class="tab-btn" [class.active]="activeTab() === 'comments'" (click)="activeTab.set('comments')">
+            <i class="pi pi-comment"></i> Comentarios ({{ comments().length }})
+          </button>
+        </div>
+
+        <!-- CONTENIDO DE TABS -->
+        <div class="scroll-content">
+          <!-- ===== TAB: PARADAS ===== -->
+          @if (activeTab() === 'stops') {
+            <div>
+              <div class="direction-toggle">
+                <button class="dir-btn" [class.active]="activeDirection() === 'ida'" (click)="onDirectionChange('ida')">
+                  <i class="pi pi-arrow-right"></i> Ida (Ir)
+                </button>
+                <button class="dir-btn" [class.active]="activeDirection() === 'vuelta'" (click)="onDirectionChange('vuelta')">
+                  <i class="pi pi-arrow-left"></i> Vuelta (Volver)
+                </button>
+              </div>
+              
+              @if (getStops().length > 0) {
+                <div class="stops-list-editor-style">
+                  @for (stop of getStops(); track $index) {
+                    <div 
+                      class="stop-item-editor" 
+                      (click)="onStopSelect(stop)" 
+                      (mouseenter)="onStopHover(stop)" 
+                      (mouseleave)="onStopHover(null)"
+                    >
+                      <span class="stop-number-editor">{{ $index + 1 }}</span>
+                      <span class="stop-name-editor">{{ stop.nombre }}</span>
+                      @if ($first) {
+                        <span class="stop-terminal-editor origin">Inicio</span>
+                      }
+                      @if ($last && getStops().length > 1) {
+                        <span class="stop-terminal-editor destination">Final</span>
+                      }
+                      <i class="pi pi-chevron-right stop-arrow-editor"></i>
                     </div>
-                    <p class="comment-text">{{ comment.comentario }}</p>
-                    <span class="comment-date">{{ comment.fechaFormateada }}</span>
-                  </div>
-                }
-              }
-            }
-            <form (ngSubmit)="submitComment($event)" class="comment-form">
-              <h5>Dejar una Reseña / Reporte</h5>
-              @if (commentSubmittedMsg()) {
-                <div class="success-msg"><i class="pi pi-check-circle"></i> {{ commentSubmittedMsg() }}</div>
-              }
-              <div class="form-group">
-                <label>Calificación en estrellas</label>
-                <div class="stars-selector">
-                  @for (s of [1,2,3,4,5]; track s) {
-                    <span (click)="commentStars.set(s)" [class.active]="s <= commentStars()">★</span>
                   }
                 </div>
-              </div>
-              <div class="form-group">
-                <textarea [(ngModel)]="commentText" name="commentText" 
-                          placeholder="Ej. 'La parada en la Garita va muy saturada...' o 'Excelente trazado.'"
-                          rows="2" required></textarea>
-              </div>
-              <button type="submit" class="submit-btn" [disabled]="!commentText() || commentStars() === 0">
-                <i class="pi pi-send"></i> Publicar Reseña
-              </button>
-            </form>
-          </div>
-        }
+              } @else {
+                <div class="empty-state">
+                  <i class="pi pi-map-marker"></i>
+                  <p>Esta ruta no tiene paradas.</p>
+                </div>
+              }
+            </div>
+          }
 
+          <!-- ===== TAB: COMENTARIOS ===== -->
+          @if (activeTab() === 'comments') {
+            <div>
+              @if (isLoadingComments()) {
+                <div class="loading-spinner">Cargando comentarios...</div>
+              } @else {
+                @if (comments().length === 0) {
+                  <div class="empty-state"><i class="pi pi-comment"></i><p>No hay opiniones aún.</p></div>
+                } @else {
+                  @for (comment of comments(); track comment.id) {
+                    <div class="comment-item">
+                      <div class="comment-header">
+                        <div class="comment-user">
+                          <span class="user-avatar">{{ comment.usuarioNombre?.[0] || 'U' }}</span>
+                          <div>
+                            <span class="user-name">{{ comment.usuarioNombre }}</span>
+                            <span class="user-email">{{ comment.usuarioEmail }}</span>
+                          </div>
+                        </div>
+                        <div class="comment-stars">
+                          @for (s of [1,2,3,4,5]; track s) {
+                            <span [class.filled]="s <= (comment.puntuacion || 0)">★</span>
+                          }
+                        </div>
+                      </div>
+                      <p class="comment-text">{{ comment.comentario }}</p>
+                      <span class="comment-date">{{ comment.fechaFormateada }}</span>
+                    </div>
+                  }
+                }
+              }
+              <form (ngSubmit)="submitComment($event)" class="comment-form">
+                <h5>Dejar una Reseña / Reporte</h5>
+                @if (commentSubmittedMsg()) {
+                  <div class="success-msg"><i class="pi pi-check-circle"></i> {{ commentSubmittedMsg() }}</div>
+                }
+                <div class="form-group">
+                  <label>Calificación en estrellas</label>
+                  <div class="stars-selector">
+                    @for (s of [1,2,3,4,5]; track s) {
+                      <span (click)="commentStars.set(s)" [class.active]="s <= commentStars()">★</span>
+                    }
+                  </div>
+                </div>
+                <div class="form-group">
+                  <textarea [(ngModel)]="commentText" name="commentText" 
+                            placeholder="Ej. 'La parada en la Garita va muy saturada...' o 'Excelente trazado.'"
+                            rows="2" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn" [disabled]="!commentText() || commentStars() === 0">
+                  <i class="pi pi-send"></i> Publicar Reseña
+                </button>
+              </form>
+            </div>
+          }
+        </div>
 
-      </div>
-
-      <!-- BOTÓN VER MENOS (al final del expandido) -->
-      <div class="collapse-footer">
-        <button class="collapse-btn" (click)="toggleExpand()">
-          <i class="pi pi-chevron-up"></i> Ver menos
-        </button>
-      </div>
-
-    </div> <!-- fin expanded-view -->
+      </div> <!-- fin expanded-view -->
+    }
+        <!-- ========================================================== -->
+    <!-- MODO COLAPSADO (resumen) – siempre visible al inicio         -->
+    <!-- ========================================================== -->
+    <div class="collapsed-view">
+      <button class="expand-btn" (click)="toggleExpand()">
+        {{ isExpanded() ? 'Ver menos' : 'Ver más' }}
+        <i class="pi" [class.pi-chevron-down]="!isExpanded()" [class.pi-chevron-up]="isExpanded()"></i>
+      </button>
+    </div>
 
   </div> <!-- fin card-body -->
-
-  <!-- MODAL ELIMINAR -->
-  @if (showConfirmDelete()) {
-    <div class="delete-modal">
-      <div class="modal-backdrop" (click)="cancelDelete()"></div>
-      <div class="modal-content">
-        
-        <h3>¿Eliminar línea de transporte?</h3>
-        <p>Esta acción no se puede deshacer de forma local.</p>
-        <div class="modal-actions">
-          <button class="cancel-btn" (click)="cancelDelete()">Cancelar</button>
-          <button class="delete-btn-modal" (click)="deleteAndClose()">Eliminar Definitivamente</button>
-        </div>
-      </div>
-    </div>
-  }
 
 </div>

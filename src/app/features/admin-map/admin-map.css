@@ -19,7 +19,11 @@
   outline: none;
 }
 
-/* ====== CONTROLES DE ZOOM ====== */
+.map-container.editing {
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+}
+
 .zoom-controls {
   position: absolute;
   right: 16px;
@@ -74,11 +78,7 @@
   }
 }
 
-/* ============================================================
-   ESTILOS DE MARCADORES PERSONALIZADOS
-   ============================================================ */
-
-/* ====== MARCADOR DE PARADA - Círculo blanco con número ====== */
+/* ====== ESTILOS DE MARCADORES ====== */
 :host ::ng-deep .custom-stop-marker {
   background: transparent !important;
   border: none !important;
@@ -112,7 +112,6 @@
   user-select: none !important;
 }
 
-/* Hover effect para paradas */
 :host ::ng-deep .stop-marker-circle:hover {
   transform: scale(1.15);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
@@ -120,25 +119,12 @@
   cursor: pointer;
 }
 
-/* Efecto de clic */
-:host ::ng-deep .stop-marker-circle:active {
-  transform: scale(0.95) !important;
-}
-
-/* Estilo para borrador (dashed) */
 :host ::ng-deep .stop-marker-circle.draft {
   border-style: dashed !important;
   border-color: #f59e0b !important;
 }
 
-/* Estilo para terminales (opcional) */
-:host ::ng-deep .stop-marker-circle.terminal {
-  border-color: #ef4444 !important;
-  border-width: 3px !important;
-  font-weight: 800 !important;
-}
-
-/* ====== PUNTOS DEL POLYLINE (Nodos) ====== */
+/* ====== PUNTOS DEL POLYLINE ====== */
 :host ::ng-deep .custom-node-marker {
   background: transparent !important;
   border: none !important;
@@ -163,7 +149,7 @@
   cursor: grabbing !important;
 }
 
-/* ====== PUNTOS MEDIOS PARA ESTIRAR ====== */
+/* ====== PUNTOS MEDIOS ====== */
 :host ::ng-deep .custom-mid-node-marker {
   background: transparent !important;
   border: none !important;
@@ -196,9 +182,7 @@
   cursor: grabbing !important;
 }
 
-/* ============================================================
-   POPUPS
-   ============================================================ */
+/* ====== POPUPS ====== */
 :host ::ng-deep .leaflet-popup-content-wrapper {
   border-radius: 10px !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
@@ -217,9 +201,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* ============================================================
-   TOOLTIPS
-   ============================================================ */
+/* ====== TOOLTIPS ====== */
 :host ::ng-deep .leaflet-tooltip {
   background: rgba(15, 23, 42, 0.9) !important;
   color: white !important;
@@ -235,135 +217,4 @@
 
 :host ::ng-deep .leaflet-tooltip::before {
   border-top-color: rgba(15, 23, 42, 0.9) !important;
-}
-
-/* ============================================================
-   MAPA - ESTILOS ADICIONALES
-   ============================================================ */
-
-/* Eliminar el borde de los controles de Leaflet */
-:host ::ng-deep .leaflet-control {
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Mejorar la apariencia de las líneas del mapa */
-:host ::ng-deep .leaflet-interactive {
-  transition: all 0.2s ease !important;
-}
-
-/* Estilo para el contenedor del mapa cuando está en modo edición */
-.map-container.editing {
-  border: 2px solid #f59e0b;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 768px) {
-  .map-wrapper {
-    min-height: 300px;
-    border-radius: 8px;
-  }
-
-  .map-container {
-    border-radius: 6px;
-  }
-
-  /* Zoom controls más pequeños en móvil */
-  .zoom-controls {
-    right: 8px;
-    bottom: 8px;
-    gap: 6px;
-  }
-
-  .zoom-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
-  }
-
-  /* Popups más pequeños en móvil */
-  :host ::ng-deep .leaflet-popup-content {
-    padding: 8px 12px !important;
-    min-width: 150px !important;
-  }
-
-  :host ::ng-deep .leaflet-popup-content-wrapper {
-    border-radius: 8px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .map-wrapper {
-    min-height: 250px;
-  }
-
-  /* Marcadores más pequeños en móvil */
-  :host ::ng-deep .stop-marker-circle {
-    width: 24px !important;
-    height: 24px !important;
-    font-size: 10px !important;
-  }
-
-  :host ::ng-deep .custom-node-marker > div {
-    width: 10px !important;
-    height: 10px !important;
-  }
-
-  :host ::ng-deep .custom-mid-node-marker > div {
-    width: 16px !important;
-    height: 16px !important;
-    font-size: 12px !important;
-  }
-}
-
-/* ============================================================ */
-/* 🔥 MARCADOR DE UBICACIÓN SELECCIONADA (más simple)          */
-/* ============================================================ */
-.selected-location-marker-wrapper {
-  /* El wrapper es manejado por Leaflet */
-}
-
-.selected-location-marker {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.selected-location-icon {
-  width: 32px;
-  height: 32px;
-  background: #2563eb;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
-  border: 2px solid white;
-}
-
-.selected-location-icon i {
-  transform: rotate(45deg);
-  color: white;
-  font-size: 16px;
-}
-
-.selected-location-label {
-  margin-top: 4px;
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 600;
-  white-space: nowrap;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }

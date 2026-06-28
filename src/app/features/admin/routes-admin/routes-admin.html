@@ -1,0 +1,136 @@
+<div class="routes-admin">
+  
+  <!-- HEADER -->
+  <div class="routes-header">
+    <div>
+      <h1 class="routes-title">Gestión de Rutas</h1>
+      <p class="routes-subtitle">{{ totalRoutes }} rutas encontradas</p>
+    </div>
+    <button class="btn-primary" routerLink="/admin/routes/create">
+      <i class="pi pi-plus"></i> Nueva Ruta
+    </button>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por nombre, código o sindicato..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+      @if (searchTerm()) {
+        <button class="clear-btn" (click)="searchTerm.set('')">
+          <i class="pi pi-times"></i>
+        </button>
+      }
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Estado:</label>
+      <div class="filter-buttons">
+        @for (estado of estados; track estado.value) {
+          <button 
+            class="filter-btn"
+            [class.active]="selectedEstado() === estado.value"
+            (click)="selectedEstado.set(estado.value)"
+          >
+            {{ estado.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE RUTAS -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Cargando rutas...</span>
+    </div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="routes-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Sindicato</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Paradas</th>
+            <th class="actions-col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (route of filteredRoutes(); track route.id) {
+            <tr>
+              <td>
+                <span class="route-code" [style.background]="route.color">
+                  {{ route.codigo }}
+                </span>
+              </td>
+              <td class="route-name">{{ route.nombreRuta }}</td>
+              <td>{{ route.sindicatoNombre || 'N/A' }}</td>
+              <td>
+                <span class="type-badge">
+                  {{ getTransitLabel(route.tipoTransporteId) }}
+                </span>
+              </td>
+              <td>
+                <span class="estado-badge" [class]="getEstadoClass(route.estado)">
+                  {{ getEstadoLabel(route.estado) }}
+                </span>
+              </td>
+              <td>{{ route.paradas?.length || 0 }}</td>
+              <td>
+                <div class="table-actions">
+                  <!-- 🔥 BOTÓN VER - Abre detalles -->
+                  <button 
+                    class="action-btn view"
+                    (click)="viewRoute(route.id, $event)"
+                    title="Ver detalles"
+                  >
+                    <i class="pi pi-eye"></i>
+                  </button>
+                  
+                  <!-- 🔥 BOTÓN EDITAR - Abre el editor -->
+                  <button 
+                    class="action-btn edit"
+                    (click)="editRoute(route.id, $event)"
+                    title="Editar ruta"
+                  >
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  
+                  <!-- 🔥 BOTÓN ELIMINAR -->
+                  <button 
+                    class="action-btn delete"
+                    (click)="deleteRoute(route.id, $event)"
+                    title="Eliminar ruta"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                <i class="pi pi-inbox"></i>
+                <p>No hay rutas que coincidan con los filtros</p>
+                <button class="btn-primary-sm" routerLink="/admin/routes/create">
+                  <i class="pi pi-plus"></i> Crear nueva ruta
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

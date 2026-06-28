@@ -1,0 +1,250 @@
+<div class="route-search">
+  
+  <!-- ============================================================ -->
+  <!-- HEADER                                                        -->
+  <!-- ============================================================ -->
+  <div class="search-header">
+    <h3>
+      <i class="pi pi-route"></i>
+      Planificar viaje
+    </h3>
+    <button class="close-btn" (click)="close()" title="Cerrar">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PASO 1: SELECCIONAR DESTINO                                  -->
+  <!-- ============================================================ -->
+  @if (showDestinoInput()) {
+    <div class="search-step">
+      <div class="step-label">
+        <span class="step-icon destino-icon">🔴</span>
+        <span class="step-title">¿A dónde quieres ir?</span>
+      </div>
+      
+      <div class="search-input-wrapper">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar lugar o seleccionar en el mapa..."
+          [(ngModel)]="destinoSearch"
+          (ngModelChange)="onDestinoSearchChange($event)"
+          autofocus
+        />
+        <div class="input-actions">
+          <button class="action-btn gps-btn" (click)="usarGPS('destino')" title="Usar mi ubicación">
+            <i class="pi pi-compass"></i>
+          </button>
+          <button class="action-btn map-btn" (click)="seleccionarEnMapa('destino')" title="Seleccionar en el mapa">
+            <i class="pi pi-map-marker"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sugerencias -->
+      @if (sugerenciasDestino().length > 0) {
+        <div class="suggestions">
+          @for (lugar of sugerenciasDestino(); track lugar.id) {
+            <div class="suggestion-item" (click)="selectDestino(lugar)">
+              <i class="pi pi-map-marker"></i>
+              <span>{{ lugar.nombre }}</span>
+              <small>{{ lugar.ciudad }}</small>
+            </div>
+          }
+        </div>
+      }
+
+      @if (isLoadingDestino()) {
+        <div class="loading-suggestions">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Buscando lugares...</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================================ -->
+  <!-- PASO 2: SELECCIONAR ORIGEN                                   -->
+  <!-- ============================================================ -->
+  @if (showOrigenInput()) {
+    <div class="search-step">
+      <div class="step-label">
+        <span class="step-icon origen-icon">🟢</span>
+        <span class="step-title">¿Desde dónde viajas?</span>
+      </div>
+
+      <!-- 🔥 DESTINO PRE-SELECCIONADO (mostrar como chip) -->
+      @if (destinoSeleccionado()) {
+        <div class="selected-chip destino-chip">
+          <span class="chip-icon">🔴</span>
+          <span class="chip-label">Destino: {{ destinoSeleccionado()?.nombre }}</span>
+          <button class="chip-remove" (click)="limpiarDestino()" title="Cambiar destino">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      }
+      
+      <div class="search-input-wrapper">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar lugar o seleccionar en el mapa..."
+          [(ngModel)]="origenSearch"
+          (ngModelChange)="onOrigenSearchChange($event)"
+          autofocus
+        />
+        <div class="input-actions">
+          <button class="action-btn gps-btn" (click)="usarGPS('origen')" title="Usar mi ubicación">
+            <i class="pi pi-compass"></i>
+          </button>
+          <button class="action-btn map-btn" (click)="seleccionarEnMapa('origen')" title="Seleccionar en el mapa">
+            <i class="pi pi-map-marker"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sugerencias -->
+      @if (sugerenciasOrigen().length > 0) {
+        <div class="suggestions">
+          @for (lugar of sugerenciasOrigen(); track lugar.id) {
+            <div class="suggestion-item" (click)="selectOrigen(lugar)">
+              <i class="pi pi-map-marker"></i>
+              <span>{{ lugar.nombre }}</span>
+              <small>{{ lugar.ciudad }}</small>
+            </div>
+          }
+        </div>
+      }
+
+      @if (isLoadingOrigen()) {
+        <div class="loading-suggestions">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Buscando lugares...</span>
+        </div>
+      }
+
+      <!-- 🔥 ORIGEN SELECCIONADO (mostrar como chip) -->
+      @if (origenSeleccionado()) {
+        <div class="selected-chip origen-chip">
+          <span class="chip-icon">🟢</span>
+          <span class="chip-label">Origen: {{ origenSeleccionado()?.nombre }}</span>
+          <button class="chip-remove" (click)="limpiarOrigen()" title="Cambiar origen">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================================ -->
+  <!-- PASO 3: RESULTADOS                                           -->
+  <!-- ============================================================ -->
+  @if (showResultados()) {
+    <div class="results-step">
+      <div class="results-header">
+        <span class="results-title">
+          <i class="pi pi-list"></i>
+          Resultados ({{ resultadosCount }})
+        </span>
+        <div class="results-actions">
+          <button class="back-btn" (click)="reiniciarBusqueda()" title="Volver a buscar">
+            <i class="pi pi-arrow-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mostrar origen y destino -->
+      <div class="trip-info">
+        <div class="trip-info-item">
+          <span class="trip-label">🟢 Origen:</span>
+          <span class="trip-value">{{ origenLabel }}</span>
+        </div>
+        <div class="trip-info-item">
+          <span class="trip-label">🔴 Destino:</span>
+          <span class="trip-value">{{ destinoLabel }}</span>
+        </div>
+      </div>
+
+      @if (isLoadingResultados()) {
+        <div class="loading-results">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Buscando rutas...</span>
+        </div>
+      } @else if (resultados().length === 0) {
+        <div class="empty-results">
+          <i class="pi pi-inbox"></i>
+          <p>No se encontraron rutas</p>
+          <small>Intenta con otro origen o destino</small>
+        </div>
+      } @else {
+        <div class="results-list">
+          @for (resultado of resultados(); track resultado.id) {
+            <div class="result-item" (click)="selectRuta(resultado)">
+              <div class="result-item-left">
+                <span class="result-color" [style.background]="resultado.color"></span>
+                <div class="result-info">
+                  <span class="result-name">{{ resultado.nombre }}</span>
+                  <span class="result-type">{{ resultado.icono }} {{ resultado.tipoTransporte }}</span>
+                </div>
+              </div>
+              <div class="result-item-right">
+                <span class="result-score">⭐ {{ resultado.puntuacion }}%</span>
+                <span class="result-distance">📍 {{ resultado.distanciaKm }} km</span>
+                <span class="result-time">⏱️ {{ resultado.duracionMin }} min</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================================ -->
+  <!-- PASO 4: RUTA SELECCIONADA                                    -->
+  <!-- ============================================================ -->
+  @if (showRutaSeleccionada()) {
+    @if (rutaSeleccionada(); as ruta) {
+      <div class="selected-route-step">
+        <div class="selected-route-header">
+          <div class="selected-route-info">
+            <span class="selected-route-color" [style.background]="ruta.color"></span>
+            <div>
+              <span class="selected-route-name">{{ ruta.nombre }}</span>
+              <span class="selected-route-type">{{ ruta.icono }} {{ ruta.tipoTransporte }}</span>
+            </div>
+          </div>
+          <div class="selected-route-metrics">
+            <span>⭐ {{ ruta.puntuacion }}%</span>
+            <span>📍 {{ ruta.distanciaKm }} km</span>
+            <span>⏱️ {{ ruta.duracionMin }} min</span>
+          </div>
+        </div>
+
+        <div class="selected-route-actions">
+          <button class="action-btn steps-btn" (click)="verPasos()">
+            <i class="pi pi-list"></i> Pasos
+          </button>
+          <button class="action-btn others-btn" (click)="volverAResultados()">
+            <i class="pi pi-arrow-left"></i> Otras opciones
+          </button>
+          <button class="action-btn close-route-btn" (click)="close()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+
+        <div class="selected-route-stops">
+          <div class="stop-info origen">
+            <span class="stop-dot green"></span>
+            <span>Origen: {{ origenLabel }}</span>
+          </div>
+          <div class="stop-info destino">
+            <span class="stop-dot red"></span>
+            <span>Destino: {{ destinoLabel }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+</div>

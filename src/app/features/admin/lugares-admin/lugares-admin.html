@@ -1,0 +1,164 @@
+<div class="lugares-admin">
+  
+  <!-- HEADER -->
+  <div class="lugares-header">
+    <div>
+      <h1 class="lugares-title">Gestión de Lugares</h1>
+      <p class="lugares-subtitle">{{ totalLugares }} lugares registrados</p>
+    </div>
+    <button class="btn-primary" (click)="abrirModalNuevo()">
+      <i class="pi pi-plus"></i> Nuevo Lugar
+    </button>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="search-bar">
+    <div class="search-box">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por nombre o ciudad..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+      />
+      @if (searchTerm()) {
+        <button class="clear-btn" (click)="limpiarBusqueda()">
+          <i class="pi pi-times"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="content-wrapper">
+    <!-- LISTA DE LUGARES -->
+    <div class="lugares-list-panel">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Cargando lugares...</span>
+        </div>
+      } @else {
+        <div class="lugares-list">
+          @for (lugar of filteredLugares(); track lugar.id) {
+            <div 
+              class="lugar-item"
+              [class.active]="selectedLugarId() === lugar.id"
+              (click)="selectLugar(lugar)"
+            >
+              <div class="lugar-info">
+                <div class="lugar-nombre">{{ lugar.nombre }}</div>
+                <div class="lugar-ciudad">
+                  <i class="pi pi-map-marker"></i> {{ lugar.ciudad }}
+                </div>
+                <div class="lugar-coords">
+                  {{ lugar.latitud.toFixed(5) }}, {{ lugar.longitud.toFixed(5) }}
+                </div>
+              </div>
+              <div class="lugar-actions">
+                <button class="btn-edit" (click)="$event.stopPropagation(); abrirModalEditar(lugar)" title="Editar">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button class="btn-delete" (click)="$event.stopPropagation(); eliminarLugar(lugar.id)" title="Eliminar">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <p>No hay lugares registrados</p>
+              <button class="btn-primary-sm" (click)="abrirModalNuevo()">
+                <i class="pi pi-plus"></i> Crear lugar
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- MAPA -->
+    <div class="map-panel">
+      <div #mapContainer class="map-container"></div>
+      <div class="map-hint">
+        <i class="pi pi-info-circle"></i>
+        Haz clic en el mapa para agregar un lugar en esa ubicación
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL                                                        -->
+  <!-- ============================================================ -->
+  <p-dialog 
+    [(visible)]="showModal" 
+    [modal]="true" 
+    [draggable]="false" 
+    [resizable]="false"
+    [style]="{ width: '480px' }"
+    [header]="isEditing() ? 'Editar Lugar' : 'Nuevo Lugar'"
+    (onHide)="cerrarModal()"
+  >
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input 
+          class="form-input" 
+          [(ngModel)]="editLugar.nombre"
+          placeholder="Ej: Plaza principal"
+          (keyup.enter)="guardarLugarModal()"
+        />
+      </div>
+      <div class="form-group">
+        <label>Ciudad *</label>
+        <input 
+          class="form-input" 
+          [(ngModel)]="editLugar.ciudad"
+          placeholder="Ej: La Paz"
+          (keyup.enter)="guardarLugarModal()"
+        />
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea 
+          class="form-textarea" 
+          [(ngModel)]="editLugar.descripcion"
+          placeholder="Breve descripción del lugar"
+          rows="2"
+        ></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Latitud *</label>
+          <input 
+            class="form-input" 
+            type="number" 
+            step="any"
+            [(ngModel)]="editLugar.latitud"
+            placeholder="-16.5000"
+          />
+        </div>
+        <div class="form-group">
+          <label>Longitud *</label>
+          <input 
+            class="form-input" 
+            type="number" 
+            step="any"
+            [(ngModel)]="editLugar.longitud"
+            placeholder="-68.1500"
+          />
+        </div>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="cerrarModal()">Cancelar</button>
+        <button class="save-btn" (click)="guardarLugarModal()">
+          {{ isEditing() ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+</div>

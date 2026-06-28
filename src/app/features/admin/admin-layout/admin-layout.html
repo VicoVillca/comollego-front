@@ -1,0 +1,99 @@
+<div class="admin-layout">
+  
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" [class.collapsed]="isSidebarCollapsed()">
+    
+    <!-- Logo -->
+    <div class="sidebar-logo" (click)="setActiveMenu('dashboard')">
+      <div class="logo-icon">
+        <i class="pi pi-map"></i>
+      </div>
+      @if (!isSidebarCollapsed()) {
+        <span class="logo-text">Comollego</span>
+        <span class="logo-badge">Admin</span>
+      }
+    </div>
+
+    <!-- Menú -->
+    <nav class="sidebar-nav">
+      @for (item of menuItems; track item.id) {
+        <a 
+          class="nav-item" 
+          [class.active]="activeMenuItem() === item.id"
+          [routerLink]="item.id === 'dashboard' ? '/admin' : '/admin/' + item.id"
+          (click)="setActiveMenu(item.id)"
+        >
+          <i class="nav-icon" [class]="item.icon"></i>
+          @if (!isSidebarCollapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Footer del sidebar -->
+    <div class="sidebar-footer">
+      <div class="user-info" (click)="logout()">
+        <div class="user-avatar">
+          @if (currentUser()?.pictureUrl) {
+            <img [src]="currentUser()?.pictureUrl" alt="Avatar" />
+          } @else {
+            <span>{{ getInitials(currentUser()?.name || 'Usuario') }}</span>
+          }
+        </div>
+        @if (!isSidebarCollapsed()) {
+          <div class="user-details">
+            <span class="user-name">{{ currentUser()?.name || 'Administrador' }}</span>
+            <span class="user-role">Admin</span>
+          </div>
+          <i class="pi pi-sign-out logout-icon"></i>
+        }
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="admin-content" [class.sidebar-collapsed]="isSidebarCollapsed()">
+    
+    <!-- TOP BAR -->
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <button class="toggle-btn" (click)="toggleSidebar()">
+          <i class="pi" [class.pi-bars]="!isSidebarCollapsed()" [class.pi-arrow-right]="isSidebarCollapsed()"></i>
+        </button>
+        <h1 class="page-title">
+          @switch (activeMenuItem()) {
+            @case ('dashboard') { Dashboard }
+            @case ('routes') { Gestión de Rutas }
+            @case ('sindicatos') { Gestión de Sindicatos }
+            @case ('lugares') { Gestión de Lugares }
+            @case ('paradas') { Gestión de Paradas }
+            @case ('historial') { Historial de Cambios }
+            @case ('config') { Configuración }
+            @default { Admin Panel }
+          }
+        </h1>
+      </div>
+      <div class="topbar-right">
+        
+        <div class="topbar-user" (click)="logout()" title="Cerrar sesión">
+          @if (currentUser()?.pictureUrl) {
+            <img [src]="currentUser()?.pictureUrl" alt="Avatar" class="topbar-avatar" />
+          } @else {
+            <div class="topbar-avatar-placeholder">
+              {{ getInitials(currentUser()?.name || 'Admin') }}
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENIDO -->
+    <div class="admin-body">
+      <router-outlet></router-outlet>
+    </div>
+
+  </main>
+
+</div>

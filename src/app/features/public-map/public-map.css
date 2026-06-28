@@ -1,0 +1,143 @@
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  min-height: 400px;
+}
+
+.map-container {
+  flex: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  outline: none;
+}
+
+.zoom-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.zoom-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.zoom-btn:hover {
+  background: #f8fafc;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+  border-color: #94a3b8;
+}
+
+.zoom-btn:active {
+  transform: scale(0.95);
+  background: #f1f5f9;
+}
+
+@media (max-width: 768px) {
+  .zoom-controls {
+    right: 8px;
+    bottom: 8px;
+  }
+
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}
+
+:host ::ng-deep .custom-stop-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+:host ::ng-deep .stop-marker-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+:host ::ng-deep .stop-marker-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50% !important;
+  border: 2px solid #64748b;
+  background-color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease !important;
+  font-family: system-ui, -apple-system, sans-serif !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  user-select: none !important;
+}
+
+:host ::ng-deep .stop-marker-circle:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  border-color: #3b82f6 !important;
+  cursor: pointer;
+}
+
+:host ::ng-deep .stop-marker-circle:active {
+  transform: scale(0.95) !important;
+}
+
+:host ::ng-deep .leaflet-popup-content-wrapper {
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+:host ::ng-deep .leaflet-popup-content {
+  margin: 0 !important;
+  padding: 12px 16px !important;
+  min-width: 200px;
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+:host ::ng-deep .leaflet-popup-tip {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Estilos para marcadores de origen y destino */
+:host ::ng-deep .origen-marker,
+:host ::ng-deep .destino-marker {
+  background: transparent !important;
+  border: none !important;
+}

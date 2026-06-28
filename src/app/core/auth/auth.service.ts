@@ -11,25 +11,16 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  // ============================================================
-  // 🔥 SEÑALES PARA EL ESTADO DEL USUARIO
-  // ============================================================
   private currentUserSignal = signal<AuthUser | null>(null);
   private isLoggedInSignal = signal<boolean>(false);
   private isLoadingSignal = signal<boolean>(false);
   private errorMessageSignal = signal<string | null>(null);
 
-  // ============================================================
-  // 🔥 EXPONER SEÑALES
-  // ============================================================
   currentUser = this.currentUserSignal.asReadonly();
   isLoggedIn = this.isLoggedInSignal.asReadonly();
   isLoading = this.isLoadingSignal.asReadonly();
   errorMessage = this.errorMessageSignal.asReadonly();
 
-  // ============================================================
-  // 🔥 CONSTRUCTOR - RESTAURAR SESIÓN
-  // ============================================================
   constructor() {
     this.restoreSession();
   }
@@ -51,9 +42,6 @@ export class AuthService {
     }
   }
 
-  // ============================================================
-  // 🔥 DECODIFICAR TOKEN JWT DE GOOGLE (en el frontend)
-  // ============================================================
   private decodeGoogleToken(googleToken: string): any {
     try {
       const base64Url = googleToken.split('.')[1];
@@ -68,14 +56,11 @@ export class AuthService {
     }
   }
 
-  // ============================================================
-  // 🔥 LOGIN CON GOOGLE (decodifica y envía al backend)
-  // ============================================================
   loginWithGoogle(googleToken: string): void {
+    console.log('🔐 loginWithGoogle: iniciando...');
     this.isLoadingSignal.set(true);
     this.errorMessageSignal.set(null);
 
-    // 🔥 Decodificar el token de Google
     const decodedToken = this.decodeGoogleToken(googleToken);
     
     if (!decodedToken) {
@@ -86,7 +71,6 @@ export class AuthService {
 
     console.log('📋 Token decodificado:', decodedToken);
 
-    // 🔥 Construir request con los datos decodificados
     const request: GoogleLoginRequest = {
       googleSub: decodedToken.sub || '',
       email: decodedToken.email || '',
@@ -102,15 +86,18 @@ export class AuthService {
           console.log('📦 Respuesta del backend:', response);
           
           if (response.success && response.data) {
+            console.log('✅ Login exitoso, guardando sesión...');
             this.setSession(response.data);
             this.isLoadingSignal.set(false);
-            this.router.navigate(['/']);
+            console.log('✅ Sesión guardada correctamente');
           } else {
-            this.handleError(response.messages);
+            console.error('❌ Error en login:', response.messages);
+            this.handleError(response.messages || ['Error en el servidor']);
           }
         },
         error: (error) => {
           console.error('❌ Error en login:', error);
+          console.error('❌ Detalles del error:', error.error);
           this.handleError(['Error al conectar con el servidor']);
           this.isLoadingSignal.set(false);
         }
@@ -124,9 +111,6 @@ export class AuthService {
     console.error('❌ Error:', errorMsg);
   }
 
-  // ============================================================
-  // 🔥 GUARDAR SESIÓN
-  // ============================================================
   private setSession(authData: AuthResponse): void {
     const { token, user } = authData;
 
@@ -137,14 +121,12 @@ export class AuthService {
     this.isLoggedInSignal.set(true);
     
     console.log('✅ Sesión iniciada:', user);
+    console.log('🔑 Rol del usuario:', (user as any)?.role);
   }
 
-  // ============================================================
-  // 🔥 CERRAR SESIÓN
-  // ============================================================
   logout(): void {
     this.clearSession();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 
   private clearSession(): void {
@@ -154,9 +136,6 @@ export class AuthService {
     this.isLoggedInSignal.set(false);
   }
 
-  // ============================================================
-  // 🔥 OBTENER TOKEN (para el interceptor)
-  // ============================================================
   getToken(): string | null {
     return localStorage.getItem('auth_token');
   }

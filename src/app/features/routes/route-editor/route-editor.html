@@ -1,20 +1,34 @@
 <div class="route-editor">
-  <!-- HEADER con gradiente (como en route-details) -->
+  <!-- HEADER -->
   <div class="editor-header" [style.background]="getHeaderGradient(editColor)">
     <div class="editor-header-left">
-      <button class="back-btn" (click)="cancel.emit()" title="Volver">
-        <i class="pi pi-arrow-left"></i>
-      </button>
       <h2>
-        {{ route() ? 'Editar Ruta' : 'Nueva Ruta' }}
+        <i class="pi pi-pencil"></i>
+        {{ routeService.isEditing() ? 'Editar Ruta' : 'Nueva Ruta' }}
       </h2>
     </div>
-    <button class="close-btn" (click)="saveDraft()" [disabled]="!isValid()">
-      <i class="pi pi-save"></i>
+    <button class="close-btn" (click)="onCancel()" title="Cerrar">
+      <i class="pi pi-times"></i>
     </button>
   </div>
 
-  <!-- TABS (como en route-details) -->
+  <!-- DEMO BANNER -->
+  @if (!routeService.isEditing() && getCoordinatesCount() === 0) {
+    <div class="demo-banner">
+      <div class="demo-content">
+        <i class="pi pi-sparkles"></i>
+        <div>
+          <p class="demo-title">¿Deseas poblar datos rápido?</p>
+          <p class="demo-desc">Carga un trazo pre-generado en El Prado de La Paz</p>
+        </div>
+        <button class="demo-btn" (click)="loadDemoRoute()">
+          <i class="pi pi-refresh"></i> Cargar Demo
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn" [class.active]="activeTab() === 'data'" (click)="activeTab.set('data')">
       <i class="pi pi-info-circle"></i> Datos
@@ -24,202 +38,212 @@
     </button>
   </div>
 
-  <!-- CONTENIDO SCROLL -->
-  <div class="editor-scroll">
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="editor-content">
+    
+    <!-- MAPA -->
+    <div class="map-container-wrapper">
+      <div #mapContainer class="map-container"></div>
+      <div class="map-hint">
+        <i class="pi pi-info-circle"></i>
+        Haz clic en el mapa para agregar puntos
+      </div>
+    </div>
 
-    <!-- ===== TAB: DATOS ===== -->
-    @if (activeTab() === 'data') {
-
-      <!-- DEMO BANNER -->
-      @if (!route() && getCoordinatesCount() === 0) {
-        <div class="demo-banner">
-          <div class="demo-content">
-            <i class="pi pi-sparkles"></i>
-            <div>
-              <p class="demo-title">¿Deseas poblar datos rápido?</p>
-              <p class="demo-desc">Carga un trazo pre-generado en El Prado de La Paz</p>
-            </div>
-            <button class="demo-btn" (click)="loadDemoRoute()">
-              <i class="pi pi-refresh"></i> Cargar Demo
-            </button>
+    <!-- PANEL LATERAL -->
+    <div class="editor-panel">
+      
+      <!-- TAB: DATOS -->
+      @if (activeTab() === 'data') {
+        <div class="panel-scroll">
+          <div class="form-group">
+            <label>Nombre de la ruta *</label>
+            <input 
+              class="form-input" 
+              [(ngModel)]="editNombreRuta" 
+              (ngModelChange)="onFieldChange()"
+              placeholder="Ej: Línea 42 - Centro"
+            />
           </div>
+
+          <div class="form-group">
+            <label>Código *</label>
+            <input 
+              class="form-input" 
+              [(ngModel)]="editCodigo" 
+              (ngModelChange)="onFieldChange()"
+              placeholder="Ej: 42"
+              maxlength="6"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Sindicato Operador</label>
+            <select class="form-select" [(ngModel)]="editSindicatoId" (ngModelChange)="onFieldChange()">
+              @for (s of sindicatos; track s.id) {
+                <option [value]="s.id">{{ s.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Transporte</label>
+              <select class="form-select" [(ngModel)]="editTipoTransporteId" (ngModelChange)="onFieldChange()">
+                @for (tipo of tiposTransporte; track tipo.id) {
+                  <option [value]="tipo.id">{{ tipo.icon }} {{ tipo.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Intervalo (min)</label>
+              <input 
+                class="form-input" 
+                type="number" 
+                step="1"
+                [(ngModel)]="editIntervaloMin" 
+                (ngModelChange)="onFieldChange()"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Distancia (km) *</label>
+              <input 
+                class="form-input" 
+                type="number" 
+                step="0.1"
+                [(ngModel)]="editDistanciaKm" 
+                (ngModelChange)="onFieldChange()"
+              />
+            </div>
+            <div class="form-group">
+              <label>Duración (min)</label>
+              <input 
+                class="form-input" 
+                type="number" 
+                step="1"
+                [(ngModel)]="editDuracionMin" 
+                (ngModelChange)="onFieldChange()"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Estado</label>
+            <select class="form-select" [(ngModel)]="editEstado" (ngModelChange)="onFieldChange()">
+              @for (estado of estados; track estado) {
+                <option [value]="estado">{{ getEstadoLabel(estado) }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- COLOR -->
+          <div class="color-section">
+            <span class="color-label">Color de la ruta</span>
+            <div class="color-palette">
+              @for (color of colorPalette; track color) {
+                <div 
+                  class="color-option" 
+                  [style.background]="color"
+                  [class.active]="editColor === color"
+                  (click)="onColorChange(color)"
+                  title="Seleccionar color"
+                ></div>
+              }
+            </div>
+          </div>
+
+          <!-- VALIDACIÓN -->
+          @if (!isValid()) {
+            <div class="validation-hint">
+              <i class="pi pi-exclamation-triangle"></i>
+              <ul>
+                @for (error of getValidationErrors(); track error) {
+                  <li>{{ error }}</li>
+                }
+              </ul>
+            </div>
+          }
         </div>
       }
 
-      <!-- NOMBRE Y CÓDIGO -->
-      <div class="form-row">
-        <div class="form-group">
-          <label>
-            <i class="pi pi-tag"></i>
-            Nombre de la ruta
-            <span class="required">*</span>
-          </label>
-          <input 
-            class="form-input" 
-            [(ngModel)]="editNombreRuta" 
-            (ngModelChange)="onFieldChange()"
-            placeholder="Ej: Línea 42 - Centro"
-            [class.error]="editNombreRuta.trim().length === 0 && editNombreRuta.length > 0"
-          />
-        </div>
-        <div class="form-group">
-          <label>
-            <i class="pi pi-hashtag"></i>
-            Código
-            <span class="required">*</span>
-          </label>
-          <input 
-            class="form-input" 
-            [(ngModel)]="editCodigo" 
-            (ngModelChange)="onFieldChange()"
-            placeholder="Ej: 42"
-            maxlength="6"
-            [class.error]="editCodigo.trim().length === 0 && editCodigo.length > 0"
-          />
-        </div>
-      </div>
-
-      <!-- SINDICATO -->
-      <div class="form-group">
-        <label>
-          <i class="pi pi-users"></i>
-          Sindicato Operador
-        </label>
-        <select class="form-select" [(ngModel)]="editSindicatoId" (ngModelChange)="onFieldChange()">
-          @for (s of sindicatos; track s.id) {
-            <option [value]="s.id">{{ s.nombre }} ({{ s.descripcion }})</option>
-          }
-        </select>
-      </div>
-
-      <!-- TIPO Y ESTADO -->
-      <div class="form-row">
-        <div class="form-group">
-          <label>
-            <i class="pi pi-truck"></i>
-            Transporte
-          </label>
-          <select class="form-select" [(ngModel)]="editTipoTransporteId" (ngModelChange)="onFieldChange()">
-            @for (tipo of tiposTransporte; track tipo.id) {
-              <option [value]="tipo.id">{{ tipo.icon }} {{ tipo.nombre }}</option>
-            }
-          </select>
-        </div>
-        <div class="form-group">
-          <label>
-            <i class="pi pi-clock"></i>
-            Intervalo (min)
-          </label>
-          <input 
-            class="form-input" 
-            type="number" 
-            step="1"
-            [(ngModel)]="editIntervaloMin" 
-            (ngModelChange)="onFieldChange()"
-          />
-        </div>
-      </div>
-
-      <!-- COLOR -->
-      <div class="color-section">
-        <span class="color-label">
-          <i class="pi pi-palette"></i>
-          Color de la ruta
-        </span>
-        <div class="color-palette">
-          @for (color of colorPalette; track color) {
-            <div 
-              class="color-option" 
-              [style.background]="color"
-              [class.active]="editColor === color"
-              (click)="onColorChange(color)"
-              title="Seleccionar color"
-            ></div>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- ===== TAB: PARADAS ===== -->
-    @if (activeTab() === 'stops') {
-      <div>
-        <!-- DIRECTION TOGGLE (como en route-details) -->
-        <div class="direction-toggle">
-          <!-- 🔥 CAMBIADO: ahora llama a onDirectionChange() -->
-          <button class="dir-btn" [class.active]="activeDirection() === 'ida'" (click)="onDirectionChange('ida')">
-            <i class="pi pi-arrow-right"></i> Ida (Ir)
-          </button>
-          <button class="dir-btn" [class.active]="activeDirection() === 'vuelta'" (click)="onDirectionChange('vuelta')">
-            <i class="pi pi-arrow-left"></i> Vuelta (Volver)
-          </button>
-        </div>
-
-        <!-- Agregar parada -->
-        <div class="add-stop-form">
-          <div class="add-stop-input">
-            <input 
-              class="form-input" 
-              [(ngModel)]="newStopName"
-              placeholder="Nombre de la parada"
-              (keyup.enter)="addStop()"
-            />
-            <button class="add-stop-btn" (click)="addStop()" >
-              <i class="pi pi-plus"></i>
+      <!-- TAB: PARADAS -->
+      @if (activeTab() === 'stops') {
+        <div class="panel-scroll">
+          <div class="direction-toggle">
+            <button class="dir-btn" [class.active]="activeDirection() === 'ida'" (click)="onDirectionChange('ida')">
+              <i class="pi pi-arrow-right"></i> Ida
+            </button>
+            <button class="dir-btn" [class.active]="activeDirection() === 'vuelta'" (click)="onDirectionChange('vuelta')">
+              <i class="pi pi-arrow-left"></i> Vuelta
             </button>
           </div>
-          @if (getCoordinatesCount() === 0) {
-            <p class="hint-text">
-              <i class="pi pi-info-circle"></i>
-              *Requiere al menos 1 punto en el mapa
-            </p>
-          }
-          @if (errorMessage) {
-            <p class="error-text">{{ errorMessage }}</p>
-          }
-        </div>
 
-        <!-- Lista de paradas estilo route-details (con números, sin flecha) -->
-        <div class="stops-list-editor-style">
-          @if (stopsCount > 0) {
-            @for (stop of getCurrentStops(); track stop.id; let i = $index) {
-              <div class="stop-item-editor">
-                <span class="stop-number-editor">{{ i + 1 }}</span>
-                <span class="stop-name-editor">{{ stop.nombre }}</span>
-                @if (i === 0) {
-                  <span class="stop-terminal-editor origin">Origen</span>
-                }
-                @if (i === stopsCount - 1 && stopsCount > 1) {
-                  <span class="stop-terminal-editor destination">Destino</span>
-                }
-                <button class="remove-btn-editor" (click)="removeStop(i)" title="Eliminar">
-                  <i class="pi pi-times"></i>
-                </button>
+          <!-- Agregar parada -->
+          <div class="add-stop-form">
+            <div class="add-stop-input">
+              <input 
+                class="form-input" 
+                [(ngModel)]="newStopName"
+                placeholder="Nombre de la parada"
+                (keyup.enter)="addStop()"
+              />
+              <button class="add-stop-btn" (click)="addStop()">
+                <i class="pi pi-plus"></i>
+              </button>
+            </div>
+            @if (errorMessage) {
+              <p class="error-text">{{ errorMessage }}</p>
+            }
+          </div>
+
+          <!-- Lista de paradas -->
+          <div class="stops-list">
+            @if (stopsCount > 0) {
+              @for (stop of getCurrentStops(); track stop.id; let i = $index) {
+                <div class="stop-item">
+                  <span class="stop-number">{{ i + 1 }}</span>
+                  <span class="stop-name">{{ stop.nombre }}</span>
+                  <button class="remove-btn" (click)="removeStop(i)" title="Eliminar">
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
+              }
+            } @else {
+              <div class="empty-stops">
+                <i class="pi pi-map-marker"></i>
+                <p>No hay paradas</p>
               </div>
             }
-          } @else {
-            <div class="empty-state">
-              <i class="pi pi-map-marker"></i>
-              <p>No hay paradas</p>
-              <small>Agrega una parada arriba</small>
+          </div>
+
+          <!-- Funciones de copia -->
+          @if (activeDirection() === 'vuelta') {
+            <div class="copy-section">
+              <button class="copy-btn" (click)="copyFromIda()">
+                <i class="pi pi-copy"></i> Copiar Ida
+              </button>
+              <button class="copy-btn" (click)="invertFromIda()">
+                <i class="pi pi-arrows-v"></i> Invertir Ida
+              </button>
             </div>
           }
         </div>
+      }
 
+      <!-- ACCIONES -->
+      <div class="form-actions">
+        <button class="cancel-btn" (click)="onCancel()">
+          <i class="pi pi-times"></i> Cancelar
+        </button>
+        <button class="save-btn" (click)="saveDraft()" [disabled]="!isValid()">
+          <i class="pi pi-save"></i>
+          {{ routeService.isEditing() ? 'Actualizar' : 'Guardar' }}
+        </button>
       </div>
-    }
 
-    <!-- VALIDACIÓN -->
-    @if (!isValid()) {
-      <div class="validation-hint">
-        <i class="pi pi-exclamation-triangle"></i>
-        <ul>
-          @for (error of getValidationErrors(); track error) {
-            <li>{{ error }}</li>
-          }
-        </ul>
-      </div>
-    }
-
+    </div>
   </div>
-
 </div>

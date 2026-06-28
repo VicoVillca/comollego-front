@@ -1,0 +1,118 @@
+<div class="sindicatos-admin">
+  
+  <!-- HEADER -->
+  <div class="sindicatos-header">
+    <div>
+      <h1 class="sindicatos-title">Gestión de Sindicatos</h1>
+      <p class="sindicatos-subtitle">{{ totalSindicatos }} sindicatos registrados</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i> Nuevo Sindicato
+    </button>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="search-bar">
+    <div class="search-box">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar sindicato..."
+        [(ngModel)]="searchTerm"
+      />
+      @if (searchTerm()) {
+        <button class="clear-btn" (click)="searchTerm.set('')">
+          <i class="pi pi-times"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- LISTA -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Cargando sindicatos...</span>
+    </div>
+  } @else {
+    <div class="sindicatos-grid">
+      @for (sindicato of filteredSindicatos(); track sindicato.id) {
+        <div class="sindicato-card">
+          <div class="sindicato-card-header">
+            <div class="sindicato-icon">
+              <i class="pi pi-building"></i>
+            </div>
+            <div class="sindicato-info">
+              <h3 class="sindicato-name">{{ sindicato.nombre }}</h3>
+              @if (sindicato.descripcion) {
+                <p class="sindicato-desc">{{ sindicato.descripcion }}</p>
+              }
+            </div>
+          </div>
+          <div class="sindicato-card-actions">
+            <button class="action-btn edit" (click)="openEditModal(sindicato)" title="Editar">
+              <i class="pi pi-pencil"></i>
+            </button>
+            <button class="action-btn delete" (click)="deleteSindicato(sindicato.id)" title="Eliminar">
+              <i class="pi pi-trash"></i>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <i class="pi pi-inbox"></i>
+          <p>No hay sindicatos registrados</p>
+          <button class="btn-primary-sm" (click)="openCreateModal()">
+            <i class="pi pi-plus"></i> Crear sindicato
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================================ -->
+  <!-- MODAL                                                        -->
+  <!-- ============================================================ -->
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <i class="pi pi-building"></i>
+            {{ isEditing() ? 'Editar Sindicato' : 'Nuevo Sindicato' }}
+          </h3>
+          <button class="modal-close" (click)="closeModal()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nombre del Sindicato *</label>
+            <input 
+              class="form-input" 
+              [(ngModel)]="editSindicato.nombre"
+              placeholder="Ej: Sindicato Litoral"
+            />
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea 
+              class="form-textarea" 
+              [(ngModel)]="editSindicato.descripcion"
+              placeholder="Descripción del sindicato..."
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="cancel-btn" (click)="closeModal()">Cancelar</button>
+          <button class="save-btn" (click)="saveSindicato()" [disabled]="!isFormValid">
+            {{ isEditing() ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
