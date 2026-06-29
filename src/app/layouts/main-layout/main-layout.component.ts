@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,14 +7,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { RouteService } from '../../core/services/route.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { LugarService } from '../../features/lugares/lugar.service';
 import { PublicMapComponent } from '../../features/public-map/public-map';
 import { RouteDetailsComponent } from '../../features/routes/route-details/route-details';
 import { RouteResultsComponent } from '../../features/routes/route-results/route-results.component';
 import { RouteStepsComponent } from '../../features/routes/route-steps/route-steps.component';
 import { AppNavigationComponent } from '../../shared/components/app-navigation/app-navigation.component';
-import { Ruta, Parada, Lugar } from '../../core/models/transit.models';
+import { Ruta, Parada } from '../../core/models/transit.models';
 import { RouteSearchService, RutaResultado } from '../../core/services/route-search.service';
+import { PleaceSearchComponent } from '../../features/route-search/pleace-search.component';
 
 @Component({
   selector: 'app-main-layout',
@@ -28,7 +28,8 @@ import { RouteSearchService, RutaResultado } from '../../core/services/route-sea
     RouteDetailsComponent,
     RouteResultsComponent,
     RouteStepsComponent,
-    AppNavigationComponent
+    AppNavigationComponent,
+    PleaceSearchComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.css']
@@ -40,31 +41,22 @@ export class MainLayoutComponent implements OnInit {
   authService = inject(AuthService);
   routeService = inject(RouteService);
   gamificationService = inject(GamificationService);
-  lugarService = inject(LugarService);
   routeSearchService = inject(RouteSearchService);
   private router = inject(Router);
 
   // ============================================================
+  // REFERENCIA AL COMPONENTE HIJO
+  // ============================================================
+  @ViewChild(PleaceSearchComponent) pleaceSearchComponent!: PleaceSearchComponent;
+
+  // ============================================================
   // ESTADO UI
   // ============================================================
-  showLugarSuggestions = signal(false);
   showRouteResults = signal(false);
   showRouteSteps = signal(false);
   
-  destinoSeleccionadoEnBuscador = signal<{ lat: number; lng: number; nombre: string } | null>(null);
-
-  // ============================================================
-  // 🔥 ESTADO PARA MOSTRAR/OCULTAR EL BUSCADOR COMPLETO
-  // ============================================================
+  destinoPreSeleccionado = signal<{ lat: number; lng: number; nombre: string } | null>(null);
   showSearch = signal<boolean>(true);
-
-  // ============================================================
-  // BUSCADOR DE LUGARES (destino)
-  // ============================================================
-  lugarSearchText = signal('');
-  lugares = signal<Lugar[]>([]);
-  isLoadingLugares = signal(false);
-  lugarSearchError = signal<string | null>(null);
 
   // ============================================================
   // USUARIO ACTUAL
@@ -85,23 +77,13 @@ export class MainLayoutComponent implements OnInit {
   mapRutaSeleccionada = signal<RutaResultado | null>(null);
   resultadosBusqueda = signal<RutaResultado[]>([]);
 
-  // ============================================================
-  // ORIGEN - variables para el panel
-  // ============================================================
-  origenSearchText = signal('');
-  sugerenciasOrigen = signal<Lugar[]>([]);
-  isLoadingOrigen = signal(false);
-  origenSeleccionado = signal<{ lat: number; lng: number; nombre: string } | null>(null);
+  // 🔥 GUARDAR LOS RESULTADOS ORIGINALES PARA VOLVER ATRÁS
+  private resultadosOriginales: RutaResultado[] = [];
 
   // ============================================================
   // MAPA - SOLO MODO VISUALIZACIÓN
   // ============================================================
   mapMode = computed<'view' | 'edit'>(() => 'view');
-
-  // ============================================================
-  // FILTRO DE LUGARES
-  // ============================================================
-  filteredLugares = computed(() => this.lugares());
 
   // ============================================================
   // GETTERS PARA EL TEMPLATE
@@ -118,8 +100,21 @@ export class MainLayoutComponent implements OnInit {
     return this.mapDestino()?.nombre || '';
   }
 
-  get destinoPreSeleccionado() {
-    return this.destinoSeleccionadoEnBuscador();
+  get shouldShowRouteDetails(): boolean {
+    if (this.destinoPreSeleccionado()) {
+      return false;
+    }
+    
+    if (this.showRouteResults() || this.showRouteSteps()) {
+      return false;
+    }
+    
+    const selectedRoute = this.routeService.selectedRoute();
+    if (selectedRoute && !this.routeService.isEditing() && !this.routeService.isCreating()) {
+      return true;
+    }
+    
+    return false;
   }
 
   // ============================================================
@@ -133,15 +128,17 @@ export class MainLayoutComponent implements OnInit {
         this.currentUser.set(JSON.parse(userData));
       }
     }
-    
-    // 🔥 Inicializar estado del buscador según dispositivo
-    this.checkMobileSearch();
+
+    this.clearAllRoutes();
   }
 
   constructor() {
     effect(() => {
       const selectedRoute = this.routeService.selectedRoute();
-      if (selectedRoute && !this.routeService.isEditing() && !this.routeService.isCreating()) {
+      if (selectedRoute && 
+          !this.routeService.isEditing() && 
+          !this.routeService.isCreating() &&
+          !this.destinoPreSeleccionado()) {
         this.updateMapFromRoute(selectedRoute);
       }
     });
@@ -155,40 +152,15 @@ export class MainLayoutComponent implements OnInit {
   }
 
   // ============================================================
-  // 🔥 MÉTODOS PARA MINIMIZAR/EXPANDIR EL BUSCADOR
-  // ============================================================
-
-  /**
-   * Verifica si es móvil y si hay origen y destino seleccionados
-   * para mostrar la versión resumida o completa
-   */
-  private checkMobileSearch(): void {
-    const isMobile = window.innerWidth <= 768;
-    // En móvil, si hay origen y destino, mostrar resumido
-    if (isMobile && this.origenSeleccionado() && this.destinoPreSeleccionado) {
-      this.showSearch.set(false);
-    } else {
-      this.showSearch.set(true);
-    }
-  }
-
-  public esMovile(): boolean {
-    const isMobile = window.innerWidth <= 768;
-    return isMobile;
-  }
-
-  /**
-   * Alterna entre vista completa y resumida del buscador
-   */
-  toggleSearch(): void {
-    this.showSearch.update(value => !value);
-  }
-
-  // ============================================================
   // 🗺️ ACTUALIZAR MAPA DESDE RUTA
   // ============================================================
   private updateMapFromRoute(route: Ruta) {
     if (!route) return;
+    
+    if (this.destinoPreSeleccionado()) {
+      console.log('⛔ No se actualiza el mapa porque hay un destino preseleccionado');
+      return;
+    }
     
     const polyline = route.polylineIda || route.polylineVuelta || '';
     const stops = route.paradas || route.paradasVuelta || [];
@@ -200,7 +172,27 @@ export class MainLayoutComponent implements OnInit {
   }
 
   // ============================================================
-  // MANEJAR DATOS DE ROUTE-DETAILS
+  // 🔥 MÉTODO PARA LIMPIAR TODAS LAS RUTAS
+  // ============================================================
+  private clearAllRoutes(): void {
+    console.log('🧹 Limpiando TODAS las rutas');
+    
+    this.routeService.selectRoute(null);
+    
+    this.mapPolyline.set('');
+    this.mapStops.set([]);
+    this.mapColor.set('#3B82F6');
+    this.mapRutaSeleccionada.set(null);
+    this.mapRutaPolyline.set('');
+    this.mapRutaColor.set('#3B82F6');
+    this.resultadosBusqueda.set([]);
+    this.resultadosOriginales = [];
+    this.showRouteResults.set(false);
+    this.showRouteSteps.set(false);
+  }
+
+  // ============================================================
+  // MANEJADORES DE EVENTOS DEL MAPA
   // ============================================================
   handleMapDataFromDetails(data: { polyline: string; stops: Parada[]; color: string }) {
     console.log('📦 Datos recibidos de detalles:', data);
@@ -209,9 +201,6 @@ export class MainLayoutComponent implements OnInit {
     this.mapColor.set(data.color);
   }
 
-  // ============================================================
-  // MANEJAR CAMBIO DE DIRECCIÓN
-  // ============================================================
   onDirectionChanged(direction: 'ida' | 'vuelta') {
     console.log('🔄 Dirección cambiada a:', direction);
     const selectedRoute = this.routeService.selectedRoute();
@@ -228,9 +217,6 @@ export class MainLayoutComponent implements OnInit {
     }
   }
 
-  // ============================================================
-  // 🖱️ EVENTOS DEL MAPA
-  // ============================================================
   handleStopClick(stop: Parada) {
     console.log('🖱️ Click en parada:', stop.nombre);
     this.gamificationService.notification.set(`📍 Parada: ${stop.nombre}`);
@@ -242,253 +228,41 @@ export class MainLayoutComponent implements OnInit {
   }
 
   // ============================================================
-  // 🔍 BUSCADOR DE LUGARES (DESTINO)
+  // 🔥 MANEJADORES DE EVENTOS DEL PLEACE-SEARCH
   // ============================================================
-  onLugarSearchChange(value: string) {
-    this.lugarSearchText.set(value);
-    
-    if (value.trim().length >= 2) {
-      this.isLoadingLugares.set(true);
-      this.lugarSearchError.set(null);
-      
-      this.lugarService.buscarLugares(value).subscribe({
-        next: (response) => {
-          this.isLoadingLugares.set(false);
-          if (response.success && response.data) {
-            this.lugares.set(response.data);
-            this.showLugarSuggestions.set(response.data.length > 0);
-          } else {
-            this.lugares.set([]);
-            this.showLugarSuggestions.set(false);
-            if (response.messages) {
-              this.lugarSearchError.set(response.messages.join(' • '));
-            }
-          }
-        },
-        error: () => {
-          this.isLoadingLugares.set(false);
-          this.lugares.set([]);
-          this.showLugarSuggestions.set(false);
-          this.lugarSearchError.set('Error al buscar lugares');
-        }
-      });
-    } else {
-      this.lugares.set([]);
-      this.showLugarSuggestions.set(false);
-      this.lugarSearchError.set(null);
-    }
-  }
-
-  clearLugarSearch() {
-    this.lugarSearchText.set('');
-    this.lugares.set([]);
-    this.showLugarSuggestions.set(false);
-    this.lugarSearchError.set(null);
-  }
-
-  onLugarBlur() {
-    setTimeout(() => this.showLugarSuggestions.set(false), 200);
-  }
-
-  // ============================================================
-  // 📍 SELECCIONAR LUGAR (DESTINO)
-  // ============================================================
-  selectedLocation = signal<{ lat: number; lng: number; nombre: string } | null>(null);
-
-  selectLugar(lugar: Lugar) {
-    console.log('📍 Destino seleccionado:', lugar);
-    
-    // 🔥 LIMPIAR RUTA SELECCIONADA ANTES DE SELECCIONAR NUEVO DESTINO
-    this.clearRutaSeleccionada();
-    
-    const destino = {
-      lat: lugar.latitud,
-      lng: lugar.longitud,
-      nombre: lugar.nombre
-    };
-    this.destinoSeleccionadoEnBuscador.set(destino);
-    this.selectedLocation.set(destino);
+  
+  onDestinoSeleccionado(destino: { lat: number; lng: number; nombre: string }) {
+    console.log('📍 Destino seleccionado:', destino);
+    this.clearAllRoutes();
+    this.destinoPreSeleccionado.set(destino);
     this.mapDestino.set(destino);
-    
-    this.lugarSearchText.set('');
-    this.lugares.set([]);
-    this.showLugarSuggestions.set(false);
-    this.gamificationService.notification.set(`🔴 Destino: ${lugar.nombre}`);
-    setTimeout(() => this.gamificationService.notification.set(''), 3000);
-    
-    // 🔥 Verificar si debe mostrar versión resumida
-    this.checkMobileSearch();
   }
 
-  /**
-   * 🔥 Método para limpiar la ruta seleccionada
-   */
-/**
- * 🔥 Método para limpiar la ruta seleccionada
- */
-private clearRutaSeleccionada(): void {
-  // Limpiar ruta seleccionada
-  this.mapRutaSeleccionada.set(null);
-  this.mapRutaPolyline.set('');    // 🔥 Polyline de la ruta
-  this.mapRutaColor.set('#3B82F6');
-  
-  // 🔥 LIMPIAR TAMBIÉN EL POLYLINE PRINCIPAL DEL MAPA
-  this.mapPolyline.set('');        // 👈 ESTA ES LA QUE FALTA
-  this.mapStops.set([]);           // 👈 LIMPIAR PARADAS TAMBIÉN
-  this.mapColor.set('#3B82F6');
-  
-  // Limpiar UI
-  this.showRouteSteps.set(false);
-  this.showRouteResults.set(false);
-  this.resultadosBusqueda.set([]);
-  
-  // Limpiar origen y destino del mapa
-  this.origenSeleccionado.set(null);
-  this.mapOrigen.set(null);
-  this.origenSearchText.set('');
-  this.sugerenciasOrigen.set([]);
-}
-
-  clearSelectedLocation() {
-    this.selectedLocation.set(null);
-    this.destinoSeleccionadoEnBuscador.set(null);
-    this.mapDestino.set(null);
-    this.mapOrigen.set(null);
-    this.origenSeleccionado.set(null);
-    this.mapRutaSeleccionada.set(null);
-    this.mapRutaPolyline.set('');
-    this.resultadosBusqueda.set([]);
-    this.showRouteResults.set(false);
-    this.showRouteSteps.set(false);
-    this.lugarSearchText.set('');
-    this.lugares.set([]);
-    this.showLugarSuggestions.set(false);
-    this.origenSearchText.set('');
-    this.sugerenciasOrigen.set([]);
-    this.gamificationService.notification.set('📍 Lugar removido');
-    setTimeout(() => this.gamificationService.notification.set(''), 2000);
-    
-    // 🔥 Mostrar versión completa al limpiar
-    this.showSearch.set(true);
-  }
-
-  // ============================================================
-  // 🔥 ORIGEN - MÉTODOS
-  // ============================================================
-  onOrigenSearchChange(value: string) {
-    this.origenSearchText.set(value);
-    if (value.trim().length >= 2) {
-      this.isLoadingOrigen.set(true);
-      this.lugarService.buscarLugares(value).subscribe({
-        next: (response) => {
-          this.isLoadingOrigen.set(false);
-          if (response.success && response.data) {
-            this.sugerenciasOrigen.set(response.data);
-          } else {
-            this.sugerenciasOrigen.set([]);
-          }
-        },
-        error: () => {
-          this.isLoadingOrigen.set(false);
-          this.sugerenciasOrigen.set([]);
-        }
-      });
-    } else {
-      this.sugerenciasOrigen.set([]);
-    }
-  }
-
-  selectOrigen(lugar: Lugar) {
-    console.log('🟢 Origen seleccionado:', lugar);
-    
-    // 🔥 LIMPIAR RUTA SELECCIONADA ANTES DE SELECCIONAR NUEVO ORIGEN
-    this.clearRutaSeleccionada();
-    
-    const origen = {
-      lat: lugar.latitud,
-      lng: lugar.longitud,
-      nombre: lugar.nombre
-    };
-    this.origenSeleccionado.set(origen);
-    this.origenSearchText.set(lugar.nombre);
-    this.sugerenciasOrigen.set([]);
+  onOrigenSeleccionado(origen: { lat: number; lng: number; nombre: string }) {
+    console.log('🟢 Origen seleccionado:', origen);
+    this.clearAllRoutes();
     this.mapOrigen.set(origen);
-    this.gamificationService.notification.set(`🟢 Origen: ${lugar.nombre}`);
-    setTimeout(() => this.gamificationService.notification.set(''), 3000);
-
-    this.buscarRutas();
-    
-    // 🔥 Verificar si debe mostrar versión resumida
-    this.checkMobileSearch();
   }
 
-  limpiarOrigen() {
-    this.origenSeleccionado.set(null);
-    this.origenSearchText.set('');
-    this.sugerenciasOrigen.set([]);
-    this.mapOrigen.set(null);
-    this.showSearch.set(true);
-  }
-
-  usarGPSorigen() {
-    console.log('📍 Usando GPS para origen...');
-    this.gamificationService.notification.set('📍 Obteniendo ubicación...');
+  onBuscarRutas(event: {
+    origen: { lat: number; lng: number; nombre: string };
+    destino: { lat: number; lng: number; nombre: string };
+  }) {
+    console.log('🔍 Buscando rutas');
+    this.clearAllRoutes();
     
-    // 🔥 LIMPIAR RUTA SELECCIONADA ANTES DE USAR GPS
-    this.clearRutaSeleccionada();
-    
-    this.routeSearchService.getCurrentPosition().then(position => {
-      const location = {
-        lat: position.lat,
-        lng: position.lng,
-        nombre: '📍 Mi ubicación'
-      };
-      this.origenSeleccionado.set(location);
-      this.origenSearchText.set('📍 Mi ubicación');
-      this.mapOrigen.set(location);
-      this.gamificationService.notification.set('🟢 Origen: Tu ubicación actual');
-      setTimeout(() => this.gamificationService.notification.set(''), 3000);
-      
-      // 🔥 Verificar si debe mostrar versión resumida
-      this.checkMobileSearch();
-      
-      this.buscarRutas();
-    }).catch(error => {
-      console.error('Error al obtener ubicación:', error);
-      this.gamificationService.notification.set('❌ Error al obtener ubicación');
-      setTimeout(() => this.gamificationService.notification.set(''), 3000);
-    });
-  }
-
-  seleccionarOrigenEnMapa() {
-    this.gamificationService.notification.set('🗺️ Haz clic en el mapa para seleccionar ORIGEN');
-    setTimeout(() => this.gamificationService.notification.set(''), 4000);
-  }
-
-  // ============================================================
-  // 🔥 BUSCAR RUTAS
-  // ============================================================
-  buscarRutas() {
-    const origen = this.origenSeleccionado();
-    const destino = this.destinoPreSeleccionado;
-    
-    if (!origen || !destino) {
-      this.gamificationService.notification.set('⚠️ Selecciona origen y destino');
-      setTimeout(() => this.gamificationService.notification.set(''), 3000);
-      return;
-    }
-    
-    console.log('🔍 Buscando rutas desde', origen.nombre, 'hasta', destino.nombre);
     this.gamificationService.notification.set('🔍 Buscando rutas...');
     
     this.routeSearchService.buscarRutas({
-      origenLat: origen.lat,
-      origenLng: origen.lng,
-      destinoLat: destino.lat,
-      destinoLng: destino.lng
+      origenLat: event.origen.lat,
+      origenLng: event.origen.lng,
+      destinoLat: event.destino.lat,
+      destinoLng: event.destino.lng
     }).subscribe({
       next: (response) => {
-        console.log('📋 Resultados:', response.resultados);
+        console.log('📋 Resultados obtenidos:', response.resultados.length);
+        // 🔥 GUARDAR LOS RESULTADOS ORIGINALES
+        this.resultadosOriginales = response.resultados;
         this.resultadosBusqueda.set(response.resultados);
         this.showRouteResults.set(true);
         if (response.resultados.length === 0) {
@@ -506,19 +280,28 @@ private clearRutaSeleccionada(): void {
     });
   }
 
-  cerrarResultados() {
-    this.showRouteResults.set(false);
+  onClearLocation() {
+    this.clearSelectedLocation();
   }
 
-  abrirResultados() {
-    if (this.resultadosBusqueda().length > 0) {
-      this.showRouteResults.set(true);
-    }
+  onToggleSearch(show: boolean): void {
+    console.log('🔄 Toggle search:', show);
+    this.showSearch.set(show);
   }
 
-  cerrarResultadosConX() {
-    this.showRouteResults.set(false);
-    this.limpiarOrigen();
+  // ============================================================
+  // 🔥 MÉTODOS DE LIMPIEZA
+  // ============================================================
+  
+  clearSelectedLocation() {
+    console.log('🧹 Limpiando selección completa');
+    this.clearAllRoutes();
+    this.destinoPreSeleccionado.set(null);
+    this.mapDestino.set(null);
+    this.mapOrigen.set(null);
+    this.gamificationService.notification.set('📍 Lugar removido');
+    setTimeout(() => this.gamificationService.notification.set(''), 2000);
+    this.showSearch.set(true);
   }
 
   // ============================================================
@@ -526,6 +309,8 @@ private clearRutaSeleccionada(): void {
   // ============================================================
   handleSelectRoute(resultado: RutaResultado) {
     console.log('🗺️ Ruta seleccionada:', resultado.nombre);
+    
+    // 🔥 Guardar la ruta seleccionada pero NO limpiar los resultados originales
     this.mapRutaSeleccionada.set(resultado);
     this.mapRutaPolyline.set(resultado.polylineIda);
     this.mapRutaColor.set(resultado.color);
@@ -538,23 +323,17 @@ private clearRutaSeleccionada(): void {
   // ============================================================
   // 🔥 MANEJAR PASOS
   // ============================================================
-  handleShowSteps() {
-    this.showRouteSteps.set(true);
-  }
-
-  handleCloseSteps() {
-    this.showRouteSteps.set(false);
-  }
-
   handleBackFromSteps() {
+    console.log('🔙 Volviendo atrás desde pasos');
     this.showRouteSteps.set(false);
+    this.resultadosBusqueda.set(this.resultadosOriginales);
     this.showRouteResults.set(true);
-    if (this.resultadosBusqueda().length > 0) {
-      this.showRouteResults.set(true);
-    }
 
-    this.mapRutaPolyline.set('');  // Limpiar polyline
-    this.mapRutaColor.set('');     // Limpiar color
+    
+    // Limpiar el polyline de la ruta seleccionada
+    this.mapRutaPolyline.set('');
+    this.mapRutaColor.set('');
+    this.mapRutaSeleccionada.set(null);
   }
 
   handleShowInMap() {
@@ -564,23 +343,34 @@ private clearRutaSeleccionada(): void {
   }
 
   // ============================================================
-  // 🔥 CERRAR RUTA SELECCIONADA
+  // 🔥 CERRAR RESULTADOS CON X
   // ============================================================
-  handleCloseRuta() {
-    this.mapRutaSeleccionada.set(null);
-    this.mapRutaPolyline.set('');
-    this.mapRutaColor.set('#3B82F6');
+  cerrarResultadosConX() {
+    console.log('❌ Cerrando resultados con X');
+    this.clearAllRoutes();
     this.mapOrigen.set(null);
     this.mapDestino.set(null);
-    this.origenSeleccionado.set(null);
-    this.resultadosBusqueda.set([]);
-    this.showRouteResults.set(false);
-    this.showRouteSteps.set(false);
+    this.destinoPreSeleccionado.set(null);
     
-    this.destinoSeleccionadoEnBuscador.set(null);
-    this.selectedLocation.set(null);
-    this.origenSearchText.set('');
-    this.sugerenciasOrigen.set([]);
+    if (this.pleaceSearchComponent) {
+      this.pleaceSearchComponent.clearAllState();
+    }
+    
+    this.gamificationService.notification.set('🗺️ Buscador reiniciado');
+    setTimeout(() => this.gamificationService.notification.set(''), 3000);
+    this.showSearch.set(true);
+  }
+
+  handleCloseRuta() {
+    console.log('❌ Cerrando ruta seleccionada');
+    this.clearAllRoutes();
+    this.mapOrigen.set(null);
+    this.mapDestino.set(null);
+    this.destinoPreSeleccionado.set(null);
+    
+    if (this.pleaceSearchComponent) {
+      this.pleaceSearchComponent.clearAllState();
+    }
     
     this.gamificationService.notification.set('🗺️ Ruta cerrada');
     setTimeout(() => this.gamificationService.notification.set(''), 3000);
@@ -602,9 +392,6 @@ private clearRutaSeleccionada(): void {
     }
   }
 
-  // ============================================================
-  // 🏷️ UTILIDADES
-  // ============================================================
   getTransitName(route: Ruta): string {
     if (route.tipoTransporteNombre) {
       return route.tipoTransporteNombre;
@@ -617,21 +404,5 @@ private clearRutaSeleccionada(): void {
       5: 'Micro'
     };
     return map[route.tipoTransporteId] || `Tipo ${route.tipoTransporteId}`;
-  }
-
-  /**
-   * Método para truncar texto
-   */
-  truncateText(text: string | undefined, maxLength: number = 25): string {
-    if (!text) return '';
-    
-    const isMobile = window.innerWidth <= 768;
-    
-    if (isMobile) {
-      if (text.length <= maxLength) return text;
-      return text.substring(0, maxLength) + '...';
-    }
-    
-    return text;
   }
 }

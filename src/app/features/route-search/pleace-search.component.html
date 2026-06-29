@@ -1,0 +1,193 @@
+<div class="search-layer">
+  <div class="search-container">
+
+    <!-- PASO 1: SIN DESTINO → Buscador simple -->
+    @if (!destinoPreSeleccionado()) {
+      <div class="search-box">
+        <i class="pi pi-search search-icon"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="¿Donde quieres ir?"
+          [(ngModel)]="lugarSearchText"
+          (ngModelChange)="onLugarSearchChange($event)"
+          (focus)="showLugarSuggestions.set(true)"
+          (blur)="onLugarBlur()"
+        />
+        @if (isLoadingLugares()) {
+          <i class="pi pi-spin pi-spinner" style="color: #3b82f6;"></i>
+        }
+      </div>
+
+      <!-- Sugerencias de lugares -->
+      @if (showLugarSuggestions() && lugarSearchText().trim().length >= 2) {
+        <div class="suggestions-dropdown">
+          @if (isLoadingLugares()) {
+            <div class="suggestion-loading">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Buscando lugares...</span>
+            </div>
+          } @else if (lugares().length === 0) {
+            <div class="suggestion-empty">
+              <i class="pi pi-search-minus"></i>
+              <span>No se encontraron lugares</span>
+            </div>
+          } @else {
+            @for (lugar of lugares(); track lugar.id) {
+              <div class="suggestion-item" (click)="selectLugar(lugar)">
+                <div class="suggestion-icon"><i class="pi pi-map-marker"></i></div>
+                <div class="suggestion-info">
+                  <span class="suggestion-name">{{ lugar.nombre }}</span>
+                  <span class="suggestion-desc">{{ lugar.ciudad }}</span>
+                </div>
+                <i class="pi pi-chevron-right suggestion-arrow"></i>
+              </div>
+            }
+          }
+        </div>
+      }
+    }
+
+    <!-- PASO 2: CON DESTINO → Mostrar chip + ORIGEN -->
+    @if (destinoPreSeleccionado() && !origenSeleccionado()) {
+      <!-- PANEL DE ORIGEN -->
+      <div class="origen-panel">
+        <div class="origen-panel-content">
+          <span class="selected-chip">
+            <div class="destino-chip">
+              <span class="chip-icon">🏁</span>
+              <span class="chip-label">{{ truncateText(destinoSeleccionadoEnBuscador()?.nombre) }}</span>
+              <button class="chip-remove" (click)="clearSelectedLocation()">
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+          </span>
+
+          @if (origenSeleccionado()) {
+            <span class="selected-chip">
+              <div class="origen-chip">
+                <span class="chip-icon">🚶</span>
+                <span class="chip-label">{{ truncateText(origenSeleccionado()?.nombre) }}</span>
+                <button class="chip-remove" (click)="clearSelectedLocation()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </span>
+          }
+
+          @if (!origenSeleccionado()) {
+            <div class="origen-label">
+              <span class="origen-icon">🚶</span>
+              <span class="step-title">¿Donde te encuentras?</span>
+            </div>
+            
+            <div class="search-input-wrapper">
+              <input
+                type="text"
+                class="search-input"
+                placeholder="Buscar lugar o seleccionar en el mapa..."
+                [(ngModel)]="origenSearchText"
+                (ngModelChange)="onOrigenSearchChange($event)"
+                autofocus
+              />
+              <div class="input-actions">
+                <button class="action-btn gps-btn" (click)="usarGPSorigen()" title="Usar mi ubicación">
+                  <i class="pi pi-compass"></i>
+                </button>
+                <button class="action-btn map-btn" (click)="seleccionarOrigenEnMapa()" title="Seleccionar en el mapa">
+                  <i class="pi pi-map-marker"></i>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Sugerencias de origen -->
+          @if (sugerenciasOrigen().length > 0) {
+            <div class="suggestions">
+              @for (lugar of sugerenciasOrigen(); track lugar.id) {
+                <div class="suggestion-item" (click)="selectOrigen(lugar)">
+                  <i class="pi pi-map-marker"></i>
+                  <span>{{ lugar.nombre }}</span>
+                  <small>{{ lugar.ciudad }}</small>
+                </div>
+              }
+            </div>
+          }
+
+          @if (isLoadingOrigen()) {
+            <div class="loading-suggestions">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Buscando lugares...</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- PASO 2: CON DESTINO Y ORIGEN SELECCIONADOS -->
+    @if (destinoPreSeleccionado() && origenSeleccionado()) {
+      <div class="origen-panel">
+        
+        <!-- VERSIÓN RESUMIDA - Cuando showSearch es false -->
+        @if (!showSearch()) {
+          <div class="origen-panel-collapsed">
+            <div class="collapsed-info">
+              <div class="collapsed-item">
+                <span class="collapsed-icon">🚶</span>
+                <span class="collapsed-name">{{ truncateText(origenSeleccionado()?.nombre, 20) }}</span>
+              </div>
+              <span class="collapsed-arrow">→</span>
+              <div class="collapsed-item">
+                <span class="collapsed-icon">🏁</span>
+                <span class="collapsed-name">{{ truncateText(destinoSeleccionadoEnBuscador()?.nombre, 20) }}</span>
+              </div>
+              <div class="collapsed-actions">
+                <button class="collapsed-expand-btn" (click)="toggleSearch()" title="Expandir">
+                  <i class="pi pi-chevron-down"></i>
+                </button>
+                <button class="collapsed-close-btn" (click)="clearSelectedLocation()" title="Cerrar">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- VERSIÓN COMPLETA - Cuando showSearch es true -->
+        @if (showSearch()) {
+          <div class="origen-panel-content">
+            
+            <span class="selected-chip">
+              <div class="destino-chip">
+                <span class="chip-icon">🏁</span>
+                <span class="chip-label">{{ truncateText(destinoSeleccionadoEnBuscador()?.nombre) }}</span>
+                <button class="chip-remove" (click)="clearSelectedLocation()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </span>
+            
+            <span class="selected-chip">
+              <div class="origen-chip">
+                <span class="chip-icon">🚶</span>
+                <span class="chip-label">{{ truncateText(origenSeleccionado()?.nombre) }}</span>
+                <button class="chip-remove" (click)="clearSelectedLocation()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </span>
+          </div>
+        }
+
+        @if (esMovile() && showSearch()) {
+          <div class="toggle-search-container">
+            <button class="panel-collapse-btn" (click)="toggleSearch()" title="Minimizar">
+              <i class="pi" [class.pi-chevron-up]="showSearch()" [class.pi-chevron-down]="!showSearch()"></i>
+              Ver menos
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
