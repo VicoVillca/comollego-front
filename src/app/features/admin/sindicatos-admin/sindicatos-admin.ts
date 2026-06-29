@@ -1,10 +1,12 @@
+// src/app/pages/sindicatos-admin/sindicatos-admin.component.ts
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { Sindicato } from '../../../core/models/transit.models';
-import { SINDICATOS_MOCK } from '../../../data/mock-data';
+import { SindicatoService } from '../../../core/services/sindicato.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-sindicatos-admin',
@@ -15,12 +17,18 @@ import { SINDICATOS_MOCK } from '../../../data/mock-data';
 })
 export class SindicatosAdminComponent implements OnInit {
   // ============================================================
+  // INYECCIÓN DE DEPENDENCIAS
+  // ============================================================
+  private sindicatoService = inject(SindicatoService);
+
+  // ============================================================
   // ESTADO
   // ============================================================
   sindicatos = signal<Sindicato[]>([]);
   searchTerm = signal('');
   isLoading = signal(true);
-  
+  errorMessage = signal<string | null>(null);
+
   // ============================================================
   // MODAL
   // ============================================================
@@ -48,14 +56,34 @@ export class SindicatosAdminComponent implements OnInit {
   }
 
   // ============================================================
-  // MÉTODOS
+  // MÉTODOS DE CARGA
   // ============================================================
   loadSindicatos() {
-    // Por ahora usamos MOCK, después se conectará al backend
-    this.sindicatos.set(SINDICATOS_MOCK);
-    setTimeout(() => this.isLoading.set(false), 300);
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+    
+    this.sindicatoService.obtenerTodos()
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.sindicatos.set(response.data);
+          } else {
+            this.errorMessage.set('No se pudieron cargar los sindicatos');
+          }
+        },
+        error: (error) => {
+          console.error('Error al cargar sindicatos:', error);
+          this.errorMessage.set('Error al cargar los sindicatos');
+          // Si falla, podrías usar datos de respaldo
+          // this.sindicatos.set(SINDICATOS_MOCK);
+        }
+      });
   }
 
+  // ============================================================
+  // MÉTODOS DEL MODAL
+  // ============================================================
   openCreateModal() {
     this.isEditing.set(false);
     this.editSindicato = { nombre: '', descripcion: '' };
@@ -73,39 +101,77 @@ export class SindicatosAdminComponent implements OnInit {
     this.editSindicato = {};
   }
 
+  // ============================================================
+  // MÉTODOS CRUD
+  // ============================================================
   saveSindicato() {
     if (!this.editSindicato.nombre?.trim()) {
       alert('El nombre del sindicato es obligatorio');
       return;
     }
 
+    this.isLoading.set(true);
+    
     if (this.isEditing()) {
-      // Actualizar existente
-      this.sindicatos.update(list => 
-        list.map(s => 
-          s.id === this.editSindicato.id 
-            ? { ...s, ...this.editSindicato } as Sindicato
-            : s
-        )
-      );
+      // ACTUALIZAR
+      const id = this.editSindicato.id!;
+      this.sindicatoService.actualizarSindicato(id, this.editSindicato)
+        .pipe(finalize(() => this.isLoading.set(false)))
+        .subscribe({
+          next: (response) => {
+            if (response.success && response.data) {
+              this.sindicatos.update(list => 
+                list.map(s => s.id === id ? response.data! : s)
+              );
+              this.closeModal();
+            } else {
+              alert('Error al actualizar el sindicato');
+            }
+          },
+          error: (error) => {
+            console.error('Error al actualizar:', error);
+            alert('Error al actualizar el sindicato');
+          }
+        });
     } else {
-      // Crear nuevo
-      const newSindicato: Sindicato = {
-        id: Date.now(),
-        nombre: this.editSindicato.nombre || '',
-        descripcion: this.editSindicato.descripcion || '',
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      this.sindicatos.update(list => [newSindicato, ...list]);
+      // CREAR NUEVO
+      this.sindicatoService.crearSindicato(this.editSindicato)
+        .pipe(finalize(() => this.isLoading.set(false)))
+        .subscribe({
+          next: (response) => {
+            if (response.success && response.data) {
+              this.sindicatos.update(list => [response.data!, ...list]);
+              this.closeModal();
+            } else {
+              alert('Error al crear el sindicato');
+            }
+          },
+          error: (error) => {
+            console.error('Error al crear:', error);
+            alert('Error al crear el sindicato');
+          }
+        });
     }
-    this.closeModal();
   }
 
   deleteSindicato(id: number) {
     if (confirm('¿Estás seguro de eliminar este sindicato?')) {
-      this.sindicatos.update(list => list.filter(s => s.id !== id));
+      this.isLoading.set(true);
+      this.sindicatoService.eliminarSindicato(id)
+        .pipe(finalize(() => this.isLoading.set(false)))
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.sindicatos.update(list => list.filter(s => s.id !== id));
+            } else {
+              alert('Error al eliminar el sindicato');
+            }
+          },
+          error: (error) => {
+            console.error('Error al eliminar:', error);
+            alert('Error al eliminar el sindicato');
+          }
+        });
     }
   }
 

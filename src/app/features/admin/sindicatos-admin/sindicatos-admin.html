@@ -1,3 +1,4 @@
+<!-- src/app/pages/sindicatos-admin/sindicatos-admin.html -->
 <div class="sindicatos-admin">
   
   <!-- HEADER -->
@@ -6,7 +7,7 @@
       <h1 class="sindicatos-title">Gestión de Sindicatos</h1>
       <p class="sindicatos-subtitle">{{ totalSindicatos }} sindicatos registrados</p>
     </div>
-    <button class="btn-primary" (click)="openCreateModal()">
+    <button class="btn-primary" (click)="openCreateModal()" [disabled]="isLoading()">
       <i class="pi pi-plus"></i> Nuevo Sindicato
     </button>
   </div>
@@ -20,6 +21,7 @@
         class="search-input"
         placeholder="Buscar sindicato..."
         [(ngModel)]="searchTerm"
+        [disabled]="isLoading()"
       />
       @if (searchTerm()) {
         <button class="clear-btn" (click)="searchTerm.set('')">
@@ -28,6 +30,17 @@
       }
     </div>
   </div>
+
+  <!-- MENSAJE DE ERROR -->
+  @if (errorMessage()) {
+    <div class="error-message">
+      <i class="pi pi-exclamation-circle"></i>
+      {{ errorMessage() }}
+      <button class="retry-btn" (click)="loadSindicatos()">
+        <i class="pi pi-refresh"></i> Reintentar
+      </button>
+    </div>
+  }
 
   <!-- LISTA -->
   @if (isLoading()) {
@@ -47,6 +60,9 @@
               <h3 class="sindicato-name">{{ sindicato.nombre }}</h3>
               @if (sindicato.descripcion) {
                 <p class="sindicato-desc">{{ sindicato.descripcion }}</p>
+              }
+              @if (sindicato.active === false) {
+                <span class="badge-inactive">Inactivo</span>
               }
             </div>
           </div>
@@ -93,6 +109,7 @@
               class="form-input" 
               [(ngModel)]="editSindicato.nombre"
               placeholder="Ej: Sindicato Litoral"
+              [disabled]="isLoading()"
             />
           </div>
           <div class="form-group">
@@ -102,12 +119,16 @@
               [(ngModel)]="editSindicato.descripcion"
               placeholder="Descripción del sindicato..."
               rows="3"
+              [disabled]="isLoading()"
             ></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="cancel-btn" (click)="closeModal()">Cancelar</button>
-          <button class="save-btn" (click)="saveSindicato()" [disabled]="!isFormValid">
+          <button class="cancel-btn" (click)="closeModal()" [disabled]="isLoading()">Cancelar</button>
+          <button class="save-btn" (click)="saveSindicato()" [disabled]="!isFormValid || isLoading()">
+            @if (isLoading()) {
+              <i class="pi pi-spin pi-spinner"></i>
+            }
             {{ isEditing() ? 'Actualizar' : 'Guardar' }}
           </button>
         </div>
