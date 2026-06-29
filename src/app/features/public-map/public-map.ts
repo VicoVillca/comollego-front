@@ -131,7 +131,7 @@ export class PublicMapComponent implements AfterViewInit, OnDestroy {
     });
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      attribution: '&copy; OpenStreetMap',
       maxZoom: 20
     }).addTo(this.map);
 

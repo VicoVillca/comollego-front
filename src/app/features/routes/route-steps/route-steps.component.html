@@ -1,4 +1,4 @@
-<div class="route-steps">
+<div class="route-steps" [class.collapsed]="isCollapsed()">
   
   <!-- HEADER -->
   <div class="steps-header">
@@ -7,45 +7,53 @@
         <i class="pi pi-arrow-left"></i>
       </button>
       <span class="steps-title">
-        Pasos del viaje
-      </span>
-    </div>
-    <button class="close-btn" (click)="close()" title="Cerrar">
-      <i class="pi pi-times"></i>
-    </button>
-  </div>
-
-  @if (ruta(); as ruta) {
-    <!-- INFO DE LA RUTA -->
-    <div class="route-info">
-      <div class="route-info-header">
+        @if (ruta(); as ruta) {
+<div class="route-info-header">
         {{ getIconoTransporte(ruta.tipoTransporte) }} 
         <span class="route-name">{{ ruta.nombre }}</span>
         <span class="route-type">⏱️ {{ ruta.duracionMin }} min</span>
       </div>
+        }
+      </span>
     </div>
+    <div class="steps-header-actions">
+      <!-- Botón Expandir/Colapsar -->
+      @if (ruta() && ruta()?.pasos && ruta()?.pasos!.length > 0) {
+        <button class="expand-btn" (click)="toggleCollapse()" [title]="isCollapsed() ? 'Expandir' : 'Colapsar'">
+          <i class="pi" [class.pi-chevron-down]="isCollapsed()" [class.pi-chevron-up]="!isCollapsed()"></i>
+        </button>
+      }
+      <!-- Botón Cerrar -->
+      <!--button class="close-btn" (click)="close()" title="Cerrar">
+        <i class="pi pi-times"></i>
+      </button-->
+    </div>
+  </div>
 
-    <!-- LISTA DE PASOS -->
-    @if (ruta.pasos && ruta.pasos.length > 0) {
-      <div class="steps-list">
-        @for (paso of ruta.pasos; track $index) {
-          <div class="step-item">
-            <div class="step-number">{{ $index + 1 }}</div>
-            <div class="step-content">
-              <div class="step-icon">{{ getIcono(paso.tipo) }}</div>
-              <div class="step-info">
-                <span class="step-desc">{{ paso.descripcion }}</span>
-                
+  @if (ruta(); as ruta) {
+
+    <!-- LISTA DE PASOS - Solo visible si NO está colapsado -->
+    @if (!isCollapsed()) {
+      @if (ruta.pasos && ruta.pasos.length > 0) {
+        <div class="steps-list">
+          @for (paso of ruta.pasos; track $index) {
+            <div class="step-item">
+              <div class="step-number">{{ $index + 1 }}</div>
+              <div class="step-content">
+                <div class="step-icon">{{ getIcono(paso.tipo) }}</div>
+                <div class="step-info">
+                  <span class="step-desc">{{ paso.descripcion }}</span>
+                </div>
               </div>
             </div>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="empty-steps">
-        <i class="pi pi-info-circle"></i>
-        <p>No hay pasos detallados disponibles</p>
-      </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-steps">
+          <i class="pi pi-info-circle"></i>
+          <p>No hay pasos detallados disponibles</p>
+        </div>
+      }
     }
 
   } @else {

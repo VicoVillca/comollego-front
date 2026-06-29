@@ -1,4 +1,4 @@
-import { Component, input, output, inject, signal } from '@angular/core';
+import { Component, input, output, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { RutaResultado } from '../../../core/services/route-search.service';
@@ -11,7 +11,7 @@ import { GamificationService } from '../../../core/services/gamification.service
   templateUrl: './route-steps.component.html',
   styleUrl: './route-steps.component.css'
 })
-export class RouteStepsComponent {
+export class RouteStepsComponent implements OnInit {
   // ============================================================
   // INPUTS
   // ============================================================
@@ -32,8 +32,32 @@ export class RouteStepsComponent {
   private gamificationService = inject(GamificationService);
 
   // ============================================================
+  // ESTADO
+  // ============================================================
+  isCollapsed = signal<boolean>(false); // Inicia expandido
+
+  // ============================================================
+  // CICLO DE VIDA
+  // ============================================================
+  ngOnInit() {
+    this.checkIfMobile();
+  }
+
+  // ============================================================
   // MÉTODOS
   // ============================================================
+  private checkIfMobile(): void {
+    const isMobile = window.innerWidth <= 768;
+    // Siempre expandido en móvil y desktop
+    this.isCollapsed.set(false);
+    console.log('📱 route-steps isMobile:', isMobile, 'isCollapsed:', this.isCollapsed());
+  }
+
+  toggleCollapse(): void {
+    this.isCollapsed.update(value => !value);
+    console.log('🔄 route-steps toggleCollapse:', this.isCollapsed());
+  }
+
   close() {
     this.onClose.emit();
   }
@@ -54,7 +78,8 @@ export class RouteStepsComponent {
       'bus': '🚌',
       'train': '🚆',
       'teleferico': '🚠',
-      'minibus': '🚐'
+      'minibus': '🚐',
+      'cable': '🚠'
     };
     return iconos[tipo] || '🚌';
   }
@@ -76,7 +101,8 @@ export class RouteStepsComponent {
       'Bus': '🚌',
       'Minibús': '🚐',
       'Trufi': '🚗',
-      'Micro': '🚌'
+      'Micro': '🚌',
+      'PumaKatari': '🚌'
     };
     return iconos[tipo] || '🚌';
   }

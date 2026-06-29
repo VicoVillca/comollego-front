@@ -1,16 +1,6 @@
 <div class="main-layout">
   
   <!-- ============================================================ -->
-  <!-- NOTIFICACIÓN FLOTANTE                                        -->
-  <!-- ============================================================ -->
-  <!--@if (gamificationService.notification()) {
-    <div class="floating-exp-banner">
-      <i class="pi pi-sparkles" style="color: #fbbf24; margin-right: 8px;"></i>
-      {{ gamificationService.notification() }}
-    </div>
-  }
--->
-  <!-- ============================================================ -->
   <!-- 🗺️ MAPA PÚBLICO                                             -->
   <!-- ============================================================ -->
   <main class="map-container-layer">
@@ -83,7 +73,7 @@
       }
 
       <!-- PASO 2: CON DESTINO → Mostrar chip + ORIGEN -->
-      @if (destinoPreSeleccionado) {
+      @if (destinoPreSeleccionado && !origenSeleccionado()) {
         <!-- PANEL DE ORIGEN -->
         <div class="origen-panel">
           <div class="origen-panel-content">
@@ -165,6 +155,78 @@
         </div>
       }
 
+      <!-- PASO 2: CON DESTINO Y ORIGEN SELECCIONADOS -->
+@if (destinoPreSeleccionado && origenSeleccionado()) {
+  <div class="origen-panel">
+    
+    <!-- ============================================================ -->
+    <!-- VERSIÓN RESUMIDA - Cuando showSearch es false               -->
+    <!-- ============================================================ -->
+    @if (!showSearch()) {
+      <div class="origen-panel-collapsed">
+        <div class="collapsed-info">
+          <div class="collapsed-item">
+            <span class="collapsed-icon">🚶</span>
+            <span class="collapsed-name">{{ truncateText(origenSeleccionado()?.nombre, 20) }}</span>
+          </div>
+          <span class="collapsed-arrow">→</span>
+          <div class="collapsed-item">
+            <span class="collapsed-icon">🏁</span>
+            <span class="collapsed-name">{{ truncateText(destinoSeleccionadoEnBuscador()?.nombre, 20) }}</span>
+          </div>
+                  <div class="collapsed-actions">
+          <button class="collapsed-expand-btn" (click)="toggleSearch()" title="Expandir">
+            <i class="pi pi-chevron-down"></i>
+          </button>
+          <button class="collapsed-close-btn" (click)="clearSelectedLocation()" title="Cerrar">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+        </div>
+      </div>
+    }
+
+    <!-- ============================================================ -->
+    <!-- VERSIÓN COMPLETA - Cuando showSearch es true                -->
+    <!-- ============================================================ -->
+    @if (showSearch()) {
+      <div class="origen-panel-content">
+        
+        <span class="selected-chip">
+          <div class="destino-chip">
+            <span class="chip-icon">🏁</span>
+            <span class="chip-label">{{ truncateText(destinoSeleccionadoEnBuscador()?.nombre) }}</span>
+            <button class="chip-remove" (click)="clearSelectedLocation()">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </span>
+        
+        <span class="selected-chip">
+          <div class="origen-chip">
+            <span class="chip-icon">🚶</span>
+            <span class="chip-label">{{ truncateText(origenSeleccionado()?.nombre) }}</span>
+            <button class="chip-remove" (click)="clearSelectedLocation()">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        </span>
+
+        
+      </div>
+    }
+@if(esMovile() && showSearch()){
+  <div class="toggle-search-container">
+    <button class="panel-collapse-btn" (click)="toggleSearch()" title="Minimizar">
+      <i class="pi" [class.pi-chevron-up]="showSearch()" [class.pi-chevron-down]="!showSearch()"></i>
+      Ver menos
+    </button>
+  </div>
+}
+  </div>
+  
+}
+
     </div>
   </div>
 
@@ -213,6 +275,7 @@
   <!-- ============================================================ -->
   <!-- 🧭 NAVEGACIÓN (componente separado)                          -->
   <!-- ============================================================ -->
+   @if (!destinoPreSeleccionado) {
   <app-navigation></app-navigation>
-
+   }
 </div>

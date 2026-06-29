@@ -8,8 +8,18 @@
   padding: 16px 20px;
   max-width: 420px;
   width: 100%;
+  transition: all 0.3s ease;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.route-steps.collapsed {
+  padding-bottom: 12px;
+  min-height: 60px;
+  max-height: 60px;
 }
 
 .route-steps::-webkit-scrollbar {
@@ -33,6 +43,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  min-height: 40px;
+  flex-shrink: 0;
 }
 
 .steps-header-left {
@@ -68,12 +80,48 @@
   gap: 6px;
 }
 
+.steps-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============================================================ */
+/* BOTÓN EXPANDIR/COLAPSAR                                      */
+/* ============================================================ */
+.expand-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.expand-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.expand-btn i {
+  transition: transform 0.3s ease;
+}
+
+/* ============================================================ */
+/* BOTÓN CERRAR                                                 */
+/* ============================================================ */
 .close-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: #f1f5f9;
+  background: transparent;
   color: #64748b;
   cursor: pointer;
   display: flex;
@@ -83,7 +131,8 @@
 }
 
 .close-btn:hover {
-  background: #e2e8f0;
+  background: #f1f5f9;
+  color: #ef4444;
 }
 
 /* ============================================================ */
@@ -95,6 +144,7 @@
   padding: 12px 14px;
   margin-bottom: 12px;
   border: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .route-info-header {
@@ -143,6 +193,7 @@
   border-radius: 10px;
   margin-bottom: 12px;
   border: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .trip-point {
@@ -178,15 +229,17 @@
 }
 
 /* ============================================================ */
-/* STEPS LIST                                                   */
+/* STEPS LIST - CON SCROLL                                      */
 /* ============================================================ */
 .steps-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 12px;
-  max-height: 300px;
   overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
+  max-height: calc(80vh - 200px);
+  animation: slideDown 0.3s ease;
 }
 
 .steps-list::-webkit-scrollbar {
@@ -198,6 +251,10 @@
   border-radius: 3px;
 }
 
+.steps-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 .step-item {
   display: flex;
   align-items: flex-start;
@@ -207,6 +264,7 @@
   border-radius: 10px;
   border: 1px solid #e2e8f0;
   transition: all 0.15s;
+  flex-shrink: 0;
 }
 
 .step-item:hover {
@@ -243,6 +301,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
 }
 
 .step-desc {
@@ -265,6 +324,7 @@
   text-align: center;
   padding: 20px;
   color: #94a3b8;
+  flex: 1;
 }
 
 .empty-steps i {
@@ -283,6 +343,7 @@
   text-align: center;
   padding: 40px 20px;
   color: #94a3b8;
+  flex: 1;
 }
 
 .empty-state i {
@@ -315,6 +376,7 @@
   justify-content: center;
   gap: 8px;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .show-map-btn:hover {
@@ -324,14 +386,37 @@
 }
 
 /* ============================================================ */
-/* RESPONSIVE                                                   */
+/* RESPONSIVE - MÓVIL CON SCROLL Y PADDING                     */
 /* ============================================================ */
 @media (max-width: 768px) {
   .route-steps {
     max-width: 100%;
     border-radius: 16px 16px 0 0;
-    max-height: 60vh;
-    padding: 14px 16px;
+    padding: 14px 16px 20px 16px;
+    min-height: 50px;
+    max-height: 90vh;
+    margin-bottom: 0;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .route-steps.collapsed {
+    padding-bottom: 18px;
+    min-height: 50px;
+    max-height: 60px;
+  }
+
+  .steps-header {
+    min-height: 36px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  .route-info {
+    margin-bottom: 8px;
+    padding: 10px 12px;
   }
 
   .step-item {
@@ -341,12 +426,44 @@
   .step-desc {
     font-size: 12px;
   }
+
+  .steps-list {
+    max-height: calc(90vh - 180px);
+  }
+
+  .expand-btn,
+  .close-btn,
+  .back-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .expand-btn {
+    margin-right: 2px;
+  }
+
+  .steps-title {
+    font-size: 14px;
+  }
 }
 
 @media (max-width: 480px) {
   .route-steps {
-    padding: 12px;
-    max-height: 70vh;
+    padding: 12px 14px 24px 14px;
+    min-height: 44px;
+    max-height: 92vh;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .route-steps.collapsed {
+    padding-bottom: 20px;
+    min-height: 44px;
+    max-height: 50px;
+  }
+
+  .steps-header {
+    min-height: 32px;
   }
 
   .route-info-header {
@@ -372,5 +489,54 @@
 
   .step-desc {
     font-size: 12px;
+  }
+
+  .steps-list {
+    max-height: calc(92vh - 170px);
+  }
+
+  .expand-btn,
+  .close-btn,
+  .back-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+
+  .steps-title {
+    font-size: 13px;
+  }
+}
+
+/* ============================================================ */
+/* PARA PANTALLAS MUY PEQUEÑAS (menos de 360px)                */
+/* ============================================================ */
+@media (max-width: 360px) {
+  .route-steps {
+    padding: 10px 12px 28px 12px;
+    min-height: 40px;
+    max-height: 94vh;
+  }
+
+  .route-steps.collapsed {
+    padding-bottom: 24px;
+    min-height: 40px;
+    max-height: 44px;
+  }
+
+  .steps-title {
+    font-size: 12px;
+  }
+
+  .steps-list {
+    max-height: calc(94vh - 160px);
+  }
+
+  .expand-btn,
+  .close-btn,
+  .back-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
   }
 }

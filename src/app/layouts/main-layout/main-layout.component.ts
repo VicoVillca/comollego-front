@@ -54,6 +54,11 @@ export class MainLayoutComponent implements OnInit {
   destinoSeleccionadoEnBuscador = signal<{ lat: number; lng: number; nombre: string } | null>(null);
 
   // ============================================================
+  // 🔥 ESTADO PARA MOSTRAR/OCULTAR EL BUSCADOR COMPLETO
+  // ============================================================
+  showSearch = signal<boolean>(true);
+
+  // ============================================================
   // BUSCADOR DE LUGARES (destino)
   // ============================================================
   lugarSearchText = signal('');
@@ -128,6 +133,9 @@ export class MainLayoutComponent implements OnInit {
         this.currentUser.set(JSON.parse(userData));
       }
     }
+    
+    // 🔥 Inicializar estado del buscador según dispositivo
+    this.checkMobileSearch();
   }
 
   constructor() {
@@ -144,6 +152,36 @@ export class MainLayoutComponent implements OnInit {
         this.mapRutaPolyline.set('');
       }
     });
+  }
+
+  // ============================================================
+  // 🔥 MÉTODOS PARA MINIMIZAR/EXPANDIR EL BUSCADOR
+  // ============================================================
+
+  /**
+   * Verifica si es móvil y si hay origen y destino seleccionados
+   * para mostrar la versión resumida o completa
+   */
+  private checkMobileSearch(): void {
+    const isMobile = window.innerWidth <= 768;
+    // En móvil, si hay origen y destino, mostrar resumido
+    if (isMobile && this.origenSeleccionado() && this.destinoPreSeleccionado) {
+      this.showSearch.set(false);
+    } else {
+      this.showSearch.set(true);
+    }
+  }
+
+  public esMovile(): boolean {
+    const isMobile = window.innerWidth <= 768;
+    return isMobile;
+  }
+
+  /**
+   * Alterna entre vista completa y resumida del buscador
+   */
+  toggleSearch(): void {
+    this.showSearch.update(value => !value);
   }
 
   // ============================================================
@@ -260,6 +298,9 @@ export class MainLayoutComponent implements OnInit {
   selectLugar(lugar: Lugar) {
     console.log('📍 Destino seleccionado:', lugar);
     
+    // 🔥 LIMPIAR RUTA SELECCIONADA ANTES DE SELECCIONAR NUEVO DESTINO
+    this.clearRutaSeleccionada();
+    
     const destino = {
       lat: lugar.latitud,
       lng: lugar.longitud,
@@ -274,7 +315,39 @@ export class MainLayoutComponent implements OnInit {
     this.showLugarSuggestions.set(false);
     this.gamificationService.notification.set(`🔴 Destino: ${lugar.nombre}`);
     setTimeout(() => this.gamificationService.notification.set(''), 3000);
+    
+    // 🔥 Verificar si debe mostrar versión resumida
+    this.checkMobileSearch();
   }
+
+  /**
+   * 🔥 Método para limpiar la ruta seleccionada
+   */
+/**
+ * 🔥 Método para limpiar la ruta seleccionada
+ */
+private clearRutaSeleccionada(): void {
+  // Limpiar ruta seleccionada
+  this.mapRutaSeleccionada.set(null);
+  this.mapRutaPolyline.set('');    // 🔥 Polyline de la ruta
+  this.mapRutaColor.set('#3B82F6');
+  
+  // 🔥 LIMPIAR TAMBIÉN EL POLYLINE PRINCIPAL DEL MAPA
+  this.mapPolyline.set('');        // 👈 ESTA ES LA QUE FALTA
+  this.mapStops.set([]);           // 👈 LIMPIAR PARADAS TAMBIÉN
+  this.mapColor.set('#3B82F6');
+  
+  // Limpiar UI
+  this.showRouteSteps.set(false);
+  this.showRouteResults.set(false);
+  this.resultadosBusqueda.set([]);
+  
+  // Limpiar origen y destino del mapa
+  this.origenSeleccionado.set(null);
+  this.mapOrigen.set(null);
+  this.origenSearchText.set('');
+  this.sugerenciasOrigen.set([]);
+}
 
   clearSelectedLocation() {
     this.selectedLocation.set(null);
@@ -294,6 +367,9 @@ export class MainLayoutComponent implements OnInit {
     this.sugerenciasOrigen.set([]);
     this.gamificationService.notification.set('📍 Lugar removido');
     setTimeout(() => this.gamificationService.notification.set(''), 2000);
+    
+    // 🔥 Mostrar versión completa al limpiar
+    this.showSearch.set(true);
   }
 
   // ============================================================
@@ -325,6 +401,9 @@ export class MainLayoutComponent implements OnInit {
   selectOrigen(lugar: Lugar) {
     console.log('🟢 Origen seleccionado:', lugar);
     
+    // 🔥 LIMPIAR RUTA SELECCIONADA ANTES DE SELECCIONAR NUEVO ORIGEN
+    this.clearRutaSeleccionada();
+    
     const origen = {
       lat: lugar.latitud,
       lng: lugar.longitud,
@@ -338,6 +417,9 @@ export class MainLayoutComponent implements OnInit {
     setTimeout(() => this.gamificationService.notification.set(''), 3000);
 
     this.buscarRutas();
+    
+    // 🔥 Verificar si debe mostrar versión resumida
+    this.checkMobileSearch();
   }
 
   limpiarOrigen() {
@@ -345,11 +427,15 @@ export class MainLayoutComponent implements OnInit {
     this.origenSearchText.set('');
     this.sugerenciasOrigen.set([]);
     this.mapOrigen.set(null);
+    this.showSearch.set(true);
   }
 
   usarGPSorigen() {
     console.log('📍 Usando GPS para origen...');
     this.gamificationService.notification.set('📍 Obteniendo ubicación...');
+    
+    // 🔥 LIMPIAR RUTA SELECCIONADA ANTES DE USAR GPS
+    this.clearRutaSeleccionada();
     
     this.routeSearchService.getCurrentPosition().then(position => {
       const location = {
@@ -362,6 +448,11 @@ export class MainLayoutComponent implements OnInit {
       this.mapOrigen.set(location);
       this.gamificationService.notification.set('🟢 Origen: Tu ubicación actual');
       setTimeout(() => this.gamificationService.notification.set(''), 3000);
+      
+      // 🔥 Verificar si debe mostrar versión resumida
+      this.checkMobileSearch();
+      
+      this.buscarRutas();
     }).catch(error => {
       console.error('Error al obtener ubicación:', error);
       this.gamificationService.notification.set('❌ Error al obtener ubicación');
@@ -427,7 +518,6 @@ export class MainLayoutComponent implements OnInit {
 
   cerrarResultadosConX() {
     this.showRouteResults.set(false);
-    //this.resultadosBusqueda.set([]);
     this.limpiarOrigen();
   }
 
@@ -462,6 +552,9 @@ export class MainLayoutComponent implements OnInit {
     if (this.resultadosBusqueda().length > 0) {
       this.showRouteResults.set(true);
     }
+
+    this.mapRutaPolyline.set('');  // Limpiar polyline
+    this.mapRutaColor.set('');     // Limpiar color
   }
 
   handleShowInMap() {
@@ -526,19 +619,19 @@ export class MainLayoutComponent implements OnInit {
     return map[route.tipoTransporteId] || `Tipo ${route.tipoTransporteId}`;
   }
 
-  // Método para truncar texto
-truncateText(text: string | undefined, maxLength: number = 25): string {
-  if (!text) return '';
-  
-  // Detectar si es móvil por el ancho de la pantalla
-  const isMobile = window.innerWidth <= 768;
-  
-  if (isMobile) {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+  /**
+   * Método para truncar texto
+   */
+  truncateText(text: string | undefined, maxLength: number = 25): string {
+    if (!text) return '';
+    
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      if (text.length <= maxLength) return text;
+      return text.substring(0, maxLength) + '...';
+    }
+    
+    return text;
   }
-  
-  // En web/desktop mostrar el texto completo
-  return text;
-}
 }

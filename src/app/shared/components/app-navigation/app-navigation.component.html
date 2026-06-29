@@ -21,13 +21,13 @@
 <!-- ============================================================ -->
 <div class="mobile-tabs">
   <button class="tab-item" [class.active]="showLineSearch()" (click)="toggleLineSearch()">
-    <i class="pi pi-route"></i><span>Líneas</span>
+    <i class="pi pi-car"></i><span>Líneas</span>
   </button>
   <button class="tab-item" [class.active]="showAppDialog()" (click)="toggleAppDialog()">
     <i class="pi pi-mobile"></i><span>App</span>
   </button>
   <button class="tab-item" [class.active]="showDevDialog()" (click)="toggleDevDialog()">
-    <i class="pi pi-code"></i><span>Devs</span>
+    <i class="pi pi-heart-fill"></i><span>Comunidad</span>
   </button>
   <button class="tab-item admin-tab" (click)="goToAdmin()" *ngIf="authService.isAuthenticated()">
     <i class="pi pi-cog"></i><span>Admin</span>
@@ -90,8 +90,6 @@
         <div class="app-features">
           <div class="app-feature"><i class="pi pi-check-circle"></i><span>Ver rutas en tiempo real</span></div>
           <div class="app-feature"><i class="pi pi-check-circle"></i><span>Notificaciones de llegada</span></div>
-          <div class="app-feature"><i class="pi pi-check-circle"></i><span>Reporta incidentes</span></div>
-          <div class="app-feature"><i class="pi pi-check-circle"></i><span>Gana experiencia y badges</span></div>
         </div>
         <div class="app-download-buttons">
           <button class="download-btn android-btn"><i class="pi pi-android"></i> Descargar para Android</button>
@@ -108,15 +106,13 @@
   <div class="modal-overlay" (click)="closeDevDialog()">
     <div class="modal-content dev-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3><i class="pi pi-code"></i> Desarrolladores</h3>
+        <h3><i class="pi pi-code"></i> Comunidad</h3>
         <button class="modal-close" (click)="closeDevDialog()"><i class="pi pi-times"></i></button>
       </div>
       <div class="modal-body">
         <div class="dev-hero"><i class="pi pi-users"></i><h3>Equipo de Desarrollo</h3><p>Hecho con ❤️ en Bolivia</p></div>
         <div class="dev-list">
           <div class="dev-card"><div class="dev-avatar">V</div><div class="dev-info"><span class="dev-name">Vico G.M.</span><span class="dev-role">Desarrollador Principal</span><span class="dev-email">vicogm@email.com</span></div></div>
-          <div class="dev-card"><div class="dev-avatar" style="background: #8b5cf6;">C</div><div class="dev-info"><span class="dev-name">Carlos C.</span><span class="dev-role">Frontend Developer</span><span class="dev-email">carlos@email.com</span></div></div>
-          <div class="dev-card"><div class="dev-avatar" style="background: #10b981;">M</div><div class="dev-info"><span class="dev-name">María F.</span><span class="dev-role">UX/UI Designer</span><span class="dev-email">maria@email.com</span></div></div>
         </div>
         <div class="dev-footer"><p>Versión 1.0.0</p><p>© 2026 Comollego - Todos los derechos reservados</p></div>
       </div>
