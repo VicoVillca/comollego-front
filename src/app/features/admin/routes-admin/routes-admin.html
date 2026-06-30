@@ -1,3 +1,4 @@
+<!-- src/app/features/admin/routes-admin/routes-admin.html -->
 <div class="routes-admin">
   
   <!-- HEADER -->
@@ -20,7 +21,6 @@
         class="search-input"
         placeholder="Buscar por nombre, código o sindicato..."
         [(ngModel)]="searchTerm"
-        (ngModelChange)="searchTerm.set($event)"
       />
       @if (searchTerm()) {
         <button class="clear-btn" (click)="searchTerm.set('')">
@@ -43,10 +43,20 @@
         }
       </div>
     </div>
+
+    @if (errorMessage()) {
+      <div class="error-badge">
+        <i class="pi pi-exclamation-circle"></i>
+        {{ errorMessage() }}
+        <button class="retry-btn" (click)="recargar()">
+          <i class="pi pi-refresh"></i>
+        </button>
+      </div>
+    }
   </div>
 
   <!-- TABLA DE RUTAS -->
-  @if (isLoading()) {
+  @if (isLoadingRoutes) {
     <div class="loading-state">
       <i class="pi pi-spin pi-spinner"></i>
       <span>Cargando rutas...</span>
@@ -85,10 +95,9 @@
                   {{ getEstadoLabel(route.estado) }}
                 </span>
               </td>
-              <td>{{ route.paradas?.length || 0 }}</td>
+              <td>0</td>
               <td>
                 <div class="table-actions">
-                  <!-- 🔥 BOTÓN VER - Abre detalles -->
                   <button 
                     class="action-btn view"
                     (click)="viewRoute(route.id, $event)"
@@ -96,8 +105,6 @@
                   >
                     <i class="pi pi-eye"></i>
                   </button>
-                  
-                  <!-- 🔥 BOTÓN EDITAR - Abre el editor -->
                   <button 
                     class="action-btn edit"
                     (click)="editRoute(route.id, $event)"
@@ -105,8 +112,6 @@
                   >
                     <i class="pi pi-pencil"></i>
                   </button>
-                  
-                  <!-- 🔥 BOTÓN ELIMINAR -->
                   <button 
                     class="action-btn delete"
                     (click)="deleteRoute(route.id, $event)"

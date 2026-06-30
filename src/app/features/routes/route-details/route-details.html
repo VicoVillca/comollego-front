@@ -117,61 +117,7 @@
             </div>
           }
 
-          <!-- ===== TAB: COMENTARIOS ===== -->
-          @if (activeTab() === 'comments') {
-            <div>
-              @if (isLoadingComments()) {
-                <div class="loading-spinner">Cargando comentarios...</div>
-              } @else {
-                @if (comments().length === 0) {
-                  <div class="empty-state"><i class="pi pi-comment"></i><p>No hay opiniones aún.</p></div>
-                } @else {
-                  @for (comment of comments(); track comment.id) {
-                    <div class="comment-item">
-                      <div class="comment-header">
-                        <div class="comment-user">
-                          <span class="user-avatar">{{ comment.usuarioNombre?.[0] || 'U' }}</span>
-                          <div>
-                            <span class="user-name">{{ comment.usuarioNombre }}</span>
-                            <span class="user-email">{{ comment.usuarioEmail }}</span>
-                          </div>
-                        </div>
-                        <div class="comment-stars">
-                          @for (s of [1,2,3,4,5]; track s) {
-                            <span [class.filled]="s <= (comment.puntuacion || 0)">★</span>
-                          }
-                        </div>
-                      </div>
-                      <p class="comment-text">{{ comment.comentario }}</p>
-                      <span class="comment-date">{{ comment.fechaFormateada }}</span>
-                    </div>
-                  }
-                }
-              }
-              <form (ngSubmit)="submitComment($event)" class="comment-form">
-                <h5>Dejar una Reseña / Reporte</h5>
-                @if (commentSubmittedMsg()) {
-                  <div class="success-msg"><i class="pi pi-check-circle"></i> {{ commentSubmittedMsg() }}</div>
-                }
-                <div class="form-group">
-                  <label>Calificación en estrellas</label>
-                  <div class="stars-selector">
-                    @for (s of [1,2,3,4,5]; track s) {
-                      <span (click)="commentStars.set(s)" [class.active]="s <= commentStars()">★</span>
-                    }
-                  </div>
-                </div>
-                <div class="form-group">
-                  <textarea [(ngModel)]="commentText" name="commentText" 
-                            placeholder="Ej. 'La parada en la Garita va muy saturada...' o 'Excelente trazado.'"
-                            rows="2" required></textarea>
-                </div>
-                <button type="submit" class="submit-btn" [disabled]="!commentText() || commentStars() === 0">
-                  <i class="pi pi-send"></i> Publicar Reseña
-                </button>
-              </form>
-            </div>
-          }
+          
         </div>
 
       </div> <!-- fin expanded-view -->

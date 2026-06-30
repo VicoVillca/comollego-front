@@ -7,6 +7,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 import { Ruta, Parada } from '../../../core/models/transit.models';
 import { GamificationService } from '../../../core/services/gamification.service';
+import { TipoTransporteService } from '../../../core/services/tipo-transporte.service';
+import { SindicatoService } from '../../../core/services/sindicato.service';
+import { finalize } from 'rxjs';
 import { RouteService } from '../../../core/services/route.service';
 
 @Component({
@@ -26,9 +29,11 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly gamification = inject(GamificationService);
   private routeParam = inject(ActivatedRoute);
   private router = inject(Router);
+  private tipoTransporteService = inject(TipoTransporteService);
+  private sindicatoService = inject(SindicatoService);
 
   // ============================================================
-  // 🗺️ MAPA - CONTROL DE ZOOM
+  // 🗺️ MAPA
   // ============================================================
   private map: L.Map | null = null;
   private layers: L.Layer[] = [];
@@ -72,13 +77,8 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   // ============================================================
   // OPCIONES PARA SELECTS
   // ============================================================
-  tiposTransporte = [
-    { id: 1, nombre: 'Minibús', icon: '🚐' },
-    { id: 2, nombre: 'Trufi', icon: '🚗' },
-    { id: 3, nombre: 'Teleférico', icon: '🚡' },
-    { id: 4, nombre: 'PumaKatari', icon: '🚌' },
-    { id: 5, nombre: 'Micro', icon: '🚚' }
-  ];
+  tiposTransporte: any[] = [];
+  sindicatos: any[] = [];
 
   estados: Array<'activo' | 'mantenimiento' | 'suspendido'> = [
     'activo',
@@ -92,12 +92,6 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     '#D81B60', '#00897B'
   ];
 
-  sindicatos = [
-    { id: 1, nombre: 'Sindicato Litoral', descripcion: 'Zona Sur' },
-    { id: 2, nombre: 'Sindicato San Cristóbal', descripcion: 'Zona Centro' },
-    { id: 3, nombre: 'Sindicato Villa Fátima', descripcion: 'Zona Este' }
-  ];
-
   // ============================================================
   // CONSTRUCTOR
   // ============================================================
@@ -109,7 +103,6 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       if (draft && Object.keys(draft).length > 0) {
         this.syncFromDraft(draft);
         if (this.isMapReady) {
-          // 🔥 Cuando el draft cambia, renderizar pero SIN re-ajustar el zoom si estamos arrastrando
           if (!this.isDragging) {
             this.shouldFitBounds = true;
           }
@@ -125,17 +118,29 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     console.log('🔄 RouteEditorComponent: ngOnInit');
     
+    // Cargar tipos de transporte y sindicatos
+    this.loadSelectOptions();
+    
     this.routeParam.params.subscribe(params => {
       const id = params['id'];
       console.log('📋 ID de la ruta desde URL:', id);
       
       if (id) {
-        const route = this.routeService.routes().find(r => r.id === Number(id));
-        if (route) {
-          this.routeService.startEditing(route.id);
-        } else {
-          this.router.navigate(['/admin/routes']);
-        }
+        this.routeService.loadRoute(Number(id))
+          .pipe(finalize(() => {
+            const route = this.routeService.routes().find(r => r.id === Number(id));
+            if (route) {
+              this.routeService.startEditing(route.id);
+            } else {
+              this.router.navigate(['/admin/routes']);
+            }
+          }))
+          .subscribe({
+            error: (err) => {
+              console.error('Error cargando ruta:', err);
+              this.router.navigate(['/admin/routes']);
+            }
+          });
       } else {
         this.routeService.startCreating();
       }
@@ -148,6 +153,49 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.map) this.map.remove();
+  }
+
+  // ============================================================
+  // CARGA DE OPCIONES PARA SELECTS
+  // ============================================================
+  loadSelectOptions() {
+    this.tipoTransporteService.obtenerTodos().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.tiposTransporte = response.data.map(t => ({
+            id: t.id,
+            nombre: t.nombre,
+            icon: t.icono || '🚌'
+          }));
+        }
+      },
+      error: (err) => {
+        console.error('Error cargando tipos de transporte:', err);
+        this.tiposTransporte = [
+          { id: 1, nombre: 'Minibús', icon: '🚐' },
+          { id: 2, nombre: 'Trufi', icon: '🚗' },
+          { id: 3, nombre: 'Teleférico', icon: '🚡' },
+          { id: 4, nombre: 'PumaKatari', icon: '🚌' },
+          { id: 5, nombre: 'Micro', icon: '🚚' }
+        ];
+      }
+    });
+
+    this.sindicatoService.obtenerTodos().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.sindicatos = response.data;
+        }
+      },
+      error: (err) => {
+        console.error('Error cargando sindicatos:', err);
+        this.sindicatos = [
+          { id: 1, nombre: 'Sindicato Litoral' },
+          { id: 2, nombre: 'Sindicato San Cristóbal' },
+          { id: 3, nombre: 'Sindicato Villa Fátima' }
+        ];
+      }
+    });
   }
 
   // ============================================================
@@ -170,7 +218,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       console.log('🖱️ Click en mapa:', e.latlng);
-      this.addPointToPolyline(e.latlng.lat, e.latlng.lng);
+      //this.addPointToPolyline(e.latlng.lat, e.latlng.lng);
     });
 
     this.map.invalidateSize();
@@ -207,21 +255,30 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const direction = this.activeDirection();
-    const polylineStr = direction === 'ida' 
-      ? (draft.polylineIda || '') 
-      : (draft.polylineVuelta || draft.polylineIda || '');
     
-    const stops = direction === 'ida' 
-      ? (draft.paradas || []) 
-      : (draft.paradasVuelta || draft.paradas || []);
+    // ✅ Obtener polyline según dirección
+    let polylineStr = '';
+    if (direction === 'ida') {
+      polylineStr = draft.polylineIda || '';
+    } else {
+      polylineStr = draft.polylineVuelta || '';
+    }
+    
+    // ✅ Obtener paradas según dirección
+    let stops: Parada[] = [];
+    if (direction === 'ida') {
+      stops = draft.paradas || [];
+    } else {
+      stops = draft.paradasVuelta || draft.paradas || [];
+    }
     
     const finalColor = this.editColor || '#3B82F6';
 
-    console.log(`✏️ Dibujando modo edición con ${polylineStr.split(';').filter(p => p).length} coordenadas y ${stops.length} paradas`);
+    console.log(`✏️ Dirección: ${direction}, Polyline: ${polylineStr}, Paradas: ${stops.length}`);
 
     const coords = this.polylineToCoordinates(polylineStr);
 
-    // 1. LÍNEA EDITABLE (punteada)
+    // 1. LÍNEA EDITABLE
     if (coords.length > 1) {
       const line = L.polyline(coords, {
         color: finalColor,
@@ -233,7 +290,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.layers.push(line);
     }
 
-    // 2. PUNTOS DEL POLYLINE (arrastrables)
+    // 2. PUNTOS DEL POLYLINE
     coords.forEach((coord, i) => {
       const nodeIcon = L.divIcon({
         html: `<div class="w-3 h-3 rounded-full border-2 border-white shadow-md" style="background-color: ${finalColor}"></div>`,
@@ -278,7 +335,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.layers.push(nodeMarker);
     });
 
-    // 3. PARADAS (arrastrables)
+    // 3. PARADAS
     const sortedStops = [...stops].sort((a, b) => (a.orden || 0) - (b.orden || 0));
     
     sortedStops.forEach((stop, index) => {
@@ -334,7 +391,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.layers.push(marker);
     });
 
-    // 4. PUNTOS MEDIOS PARA ESTIRAR
+    // 4. PUNTOS MEDIOS
     for (let i = 0; i < coords.length - 1; i++) {
       const c1 = coords[i];
       const c2 = coords[i + 1];
@@ -375,7 +432,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.layers.push(midMarker);
     }
 
-    // 5. Ajustar vista - SOLO si shouldFitBounds es true y NO estamos arrastrando
+    // 5. Ajustar vista
     if (coords.length > 0 && this.shouldFitBounds && !this.isDragging) {
       try {
         const bounds = L.latLngBounds(coords);
@@ -389,10 +446,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       } catch (e) {
         console.warn('⚠️ No se pudo ajustar la vista:', e);
       }
-      // 🔥 Después de ajustar, desactivar para que no se repita
       this.shouldFitBounds = false;
-    } else {
-      console.log('⏭️ Saltando ajuste de vista (isDragging:', this.isDragging, ', shouldFitBounds:', this.shouldFitBounds, ')');
     }
   }
 
@@ -419,8 +473,8 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.editPolylineVuelta = updatedPolyline;
     }
 
-    console.log(`➕ Agregando punto: ${lat},${lng}`);
-    this.shouldFitBounds = true; // 🔥 Al agregar un punto, re-ajustar vista
+    console.log(`➕ Agregando punto a ${direction}: ${lat},${lng}`);
+    this.shouldFitBounds = true;
     this.routeService.updateDraft(updateData);
   }
 
@@ -434,7 +488,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     const direction = this.activeDirection();
     const polyline = coords.map(c => `${c[0]},${c[1]}`).join(';');
 
-    console.log(`🔄 Actualizando polyline (${coords.length} puntos) y ${stops.length} paradas`);
+    console.log(`🔄 Actualizando ${direction}: ${coords.length} puntos, ${stops.length} paradas`);
 
     const updateData: Partial<Ruta> = { ...draft };
     
@@ -556,7 +610,10 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.editSindicatoId = draft.sindicatoId || 1;
     this.editDescripcion = '';
     this.editPolylineIda = draft.polylineIda || '';
-    this.editPolylineVuelta = draft.polylineVuelta || draft.polylineIda || '';
+
+    // ✅ NO copiar polylineIda a polylineVuelta si no existe
+    this.editPolylineIda = draft.polylineIda || '';
+    this.editPolylineVuelta = draft.polylineVuelta || ''; // ← SIN FALLBACK
   }
 
   // ============================================================
@@ -565,7 +622,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   onDirectionChange(direction: 'ida' | 'vuelta') {
     console.log('🔄 Cambiando dirección a:', direction);
     this.activeDirection.set(direction);
-    this.shouldFitBounds = true; // 🔥 Al cambiar dirección, re-ajustar vista
+    //this.shouldFitBounds = true;
     setTimeout(() => this.renderMap(), 100);
   }
 
@@ -594,12 +651,10 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       const lastCoord = coords[coords.length - 1];
       lat = lastCoord[0] + 0.0005;
       lng = lastCoord[1] + 0.0005;
-      console.log('📍 Usando última coordenada del polyline:', lat, lng);
     } else if (this.map) {
       const center = this.map.getCenter();
       lat = center.lat;
       lng = center.lng;
-      console.log('📍 Usando centro del mapa:', lat, lng);
     }
 
     const newStop: Parada = {
@@ -618,8 +673,6 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     const currentPolyline = this.getCurrentPolyline();
     const updatedPolyline = currentPolyline ? `${currentPolyline};${newCoord}` : newCoord;
     
-    console.log(`📏 Nuevo punto agregado: ${newCoord}`);
-    
     const updateData: Partial<Ruta> = { ...draft };
     
     if (this.activeDirection() === 'ida') {
@@ -632,153 +685,145 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.editPolylineVuelta = updatedPolyline;
     }
     
-    this.shouldFitBounds = true; // 🔥 Al agregar parada, re-ajustar vista
+    //this.shouldFitBounds = true;
     this.routeService.updateDraft(updateData);
     this.newStopName = '';
     this.errorMessage = '';
     console.log('✅ Parada y punto agregados correctamente');
   }
 
-  removeStop(index: number) {
-    console.log('🗑️ Eliminando parada índice:', index);
-    
-    const draft = this.routeService.activeEditDraft();
-    if (!draft || Object.keys(draft).length === 0) return;
-    
-    const currentStops = this.getCurrentStops();
-    if (currentStops.length <= 2) {
-      this.errorMessage = 'La ruta debe tener al menos dos paradas.';
-      return;
-    }
-    
-    const stopToRemove = currentStops[index];
-    console.log('📍 Parada a eliminar:', stopToRemove);
-    
-    const prevStop = index > 0 ? currentStops[index - 1] : null;
-    const nextStop = index < currentStops.length - 1 ? currentStops[index + 1] : null;
-    
-    console.log('⬅️ Parada anterior:', prevStop);
-    console.log('➡️ Parada siguiente:', nextStop);
-    
-    const currentPolyline = this.getCurrentPolyline();
-    const coords = this.polylineToCoordinates(currentPolyline);
-    console.log(`📍 Coordenadas actuales (${coords.length}):`, coords);
-    
-    const tolerance = 0.001;
-    
-    // Índice de la parada a eliminar
-    let removeIndex = -1;
-    for (let i = 0; i < coords.length; i++) {
-      const coord = coords[i];
-      const isClose = Math.abs(coord[0] - stopToRemove.latitud) < tolerance && 
-                      Math.abs(coord[1] - stopToRemove.longitud) < tolerance;
+removeStop(index: number) {
+  console.log('🗑️ Eliminando parada índice:', index);
+  
+  const draft = this.routeService.activeEditDraft();
+  if (!draft || Object.keys(draft).length === 0) return;
+  
+  const currentStops = this.getCurrentStops();
+  if (currentStops.length <= 2) {
+    this.errorMessage = 'La ruta debe tener al menos dos paradas.';
+    return;
+  }
+  
+  const stopToRemove = currentStops[index];
+  console.log('📍 Parada a eliminar:', stopToRemove);
+  
+  // 1. Obtener coordenadas actuales del polyline
+  const currentPolyline = this.getCurrentPolyline();
+  const coords = this.polylineToCoordinates(currentPolyline);
+  console.log(`📍 Coordenadas actuales (${coords.length}):`, coords);
+  
+  // 2. Encontrar TODOS los índices de las paradas en el polyline
+  const tolerance = 0.0001;
+  const stopIndices: number[] = [];
+  
+  for (let i = 0; i < coords.length; i++) {
+    const coord = coords[i];
+    for (const stop of currentStops) {
+      const isClose = Math.abs(coord[0] - stop.latitud) < tolerance && 
+                      Math.abs(coord[1] - stop.longitud) < tolerance;
       if (isClose) {
-        removeIndex = i;
-        console.log(`✅ Parada a eliminar encontrada en índice ${i}: ${coord[0]}, ${coord[1]}`);
+        stopIndices.push(i);
         break;
       }
     }
-    
-    let prevIndex = -1;
-    if (prevStop) {
-      for (let i = 0; i < coords.length; i++) {
-        const coord = coords[i];
-        const isClose = Math.abs(coord[0] - prevStop.latitud) < tolerance && 
-                        Math.abs(coord[1] - prevStop.longitud) < tolerance;
-        if (isClose) {
-          prevIndex = i;
-          console.log(`⬅️ Parada anterior encontrada en índice ${i}: ${coord[0]}, ${coord[1]}`);
-          break;
-        }
-      }
+  }
+  
+  console.log('📍 Índices de paradas en polyline:', stopIndices);
+  
+  // Encontrar el índice de la parada a eliminar
+  let removeIndex = -1;
+  for (let i = 0; i < coords.length; i++) {
+    const coord = coords[i];
+    const isClose = Math.abs(coord[0] - stopToRemove.latitud) < tolerance && 
+                    Math.abs(coord[1] - stopToRemove.longitud) < tolerance;
+    if (isClose) {
+      removeIndex = i;
+      console.log(`✅ Punto de parada encontrado en índice ${i}`);
+      break;
     }
-    
-    let nextIndex = -1;
-    if (nextStop) {
-      for (let i = 0; i < coords.length; i++) {
-        const coord = coords[i];
-        const isClose = Math.abs(coord[0] - nextStop.latitud) < tolerance && 
-                        Math.abs(coord[1] - nextStop.longitud) < tolerance;
-        if (isClose) {
-          nextIndex = i;
-          console.log(`➡️ Parada siguiente encontrada en índice ${i}: ${coord[0]}, ${coord[1]}`);
-          break;
-        }
-      }
-    }
-    
-    let startIndex = 0;
-    let endIndex = coords.length - 1;
-    
-    if (removeIndex === -1) {
-      console.warn('⚠️ No se encontró la parada en el polyline');
-      let closestIndex = -1;
-      let closestDistance = Infinity;
-      for (let i = 0; i < coords.length; i++) {
-        const coord = coords[i];
-        const distance = Math.sqrt(
-          Math.pow(coord[0] - stopToRemove.latitud, 2) + 
-          Math.pow(coord[1] - stopToRemove.longitud, 2)
-        );
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = i;
-        }
-      }
-      if (closestIndex !== -1 && closestDistance < 0.005) {
-        removeIndex = closestIndex;
-        console.log(`✅ Usando punto más cercano en índice ${removeIndex}`);
-      } else {
-        console.error('❌ No se pudo encontrar la parada en el polyline');
-        return;
-      }
-    }
-    
-    if (prevIndex !== -1) {
-      startIndex = prevIndex + 1;
-    } else {
-      startIndex = 0;
-    }
-    
-    if (nextIndex !== -1) {
-      endIndex = nextIndex - 1;
-    } else {
-      endIndex = coords.length - 1;
-    }
-    
-    console.log(`📊 Puntos a eliminar: desde ${startIndex} hasta ${endIndex}`);
-    console.log(`   (${endIndex - startIndex + 1} puntos)`);
-    
-    let updatedCoords = [...coords];
-    if (startIndex <= endIndex && startIndex < updatedCoords.length && endIndex < updatedCoords.length) {
-      updatedCoords.splice(startIndex, endIndex - startIndex + 1);
-      console.log(`✅ Puntos eliminados. Nuevos puntos: ${updatedCoords.length}`);
-    } else {
-      console.warn('⚠️ No se eliminaron puntos (índices inválidos)');
-    }
-    
+  }
+  
+  let updatedCoords = [...coords];
+  
+  if (removeIndex === -1) {
+    console.warn('⚠️ No se encontró el punto en el polyline, solo se eliminará la parada');
     const updatedStops = currentStops.filter((_, i) => i !== index)
       .map((s, i) => ({ ...s, orden: i + 1 }));
     
-    const updatedPolyline = updatedCoords.map(c => `${c[0]},${c[1]}`).join(';');
-    console.log(`📏 Nuevo polyline: ${updatedPolyline}`);
-    
     const updateData: Partial<Ruta> = { ...draft };
-    
     if (this.activeDirection() === 'ida') {
-      updateData.polylineIda = updatedPolyline;
       updateData.paradas = updatedStops;
-      this.editPolylineIda = updatedPolyline;
     } else {
-      updateData.polylineVuelta = updatedPolyline;
       updateData.paradasVuelta = updatedStops;
-      this.editPolylineVuelta = updatedPolyline;
     }
-    
-    this.shouldFitBounds = true; // 🔥 Al eliminar parada, re-ajustar vista
     this.routeService.updateDraft(updateData);
-    console.log('✅ Parada y puntos intermedios eliminados correctamente');
+    return;
   }
+  
+  // 3. Determinar qué puntos eliminar según la posición de la parada
+  const currentStopIndexInPolyline = stopIndices.indexOf(removeIndex);
+  const prevStopIndex = currentStopIndexInPolyline > 0 ? stopIndices[currentStopIndexInPolyline - 1] : -1;
+  const nextStopIndex = currentStopIndexInPolyline < stopIndices.length - 1 ? stopIndices[currentStopIndexInPolyline + 1] : -1;
+  
+  console.log('📍 Parada anterior en polyline:', prevStopIndex);
+  console.log('📍 Parada siguiente en polyline:', nextStopIndex);
+  
+  if (prevStopIndex === -1 && nextStopIndex !== -1) {
+    // PRIMERA PARADA
+    console.log('📊 ELIMINANDO PRIMERA PARADA: puntos 0 a', nextStopIndex);
+    updatedCoords.splice(0, nextStopIndex);
+    console.log(`✅ Puntos eliminados. Nuevos puntos: ${updatedCoords.length}`);
+    
+  } else if (prevStopIndex !== -1 && nextStopIndex === -1) {
+    // ÚLTIMA PARADA
+    console.log('📊 ELIMINANDO ÚLTIMA PARADA: puntos', prevStopIndex + 1, 'a', coords.length);
+    updatedCoords.splice(prevStopIndex + 1, coords.length - prevStopIndex - 1);
+    console.log(`✅ Puntos eliminados. Nuevos puntos: ${updatedCoords.length}`);
+    
+  } else if (prevStopIndex !== -1 && nextStopIndex !== -1) {
+    // PARADA DEL MEDIO
+    console.log('📊 ELIMINANDO PARADA DEL MEDIO: solo el punto', removeIndex);
+    updatedCoords.splice(removeIndex, 1);
+    console.log(`✅ Punto eliminado. Nuevos puntos: ${updatedCoords.length}`);
+    
+  } else {
+    console.log('📊 CASO ESPECIAL: eliminando parada con solo 2 paradas totales');
+    const otherStop = currentStops.find((_, i) => i !== index);
+    if (otherStop) {
+      updatedCoords = [[otherStop.latitud, otherStop.longitud]];
+    }
+  }
+  
+  // 4. Actualizar las paradas
+  const updatedStops = currentStops.filter((_, i) => i !== index)
+    .map((s, i) => ({ ...s, orden: i + 1 }));
+  
+  // 5. Reconstruir si es necesario
+  if (updatedCoords.length < 2 && updatedStops.length >= 2) {
+    console.log('🔄 Reconstruyendo polyline con las paradas restantes');
+    updatedCoords = updatedStops.map(s => [s.latitud, s.longitud]);
+  }
+  
+  // 6. ✅ Actualizar el draft SIN cambiar el zoom
+  const updatedPolyline = updatedCoords.map(c => `${c[0]},${c[1]}`).join(';');
+  const updateData: Partial<Ruta> = { ...draft };
+  
+  if (this.activeDirection() === 'ida') {
+    updateData.polylineIda = updatedPolyline;
+    updateData.paradas = updatedStops;
+    this.editPolylineIda = updatedPolyline;
+  } else {
+    updateData.polylineVuelta = updatedPolyline;
+    updateData.paradasVuelta = updatedStops;
+    this.editPolylineVuelta = updatedPolyline;
+  }
+  
+  // ✅ IMPORTANTE: NO activar shouldFitBounds
+  // this.shouldFitBounds = true; // ❌ ELIMINADO
+  
+  this.routeService.updateDraft(updateData);
+  console.log('✅ Parada y puntos eliminados correctamente (zoom sin cambios)');
+}
 
   public getCurrentStops(): Parada[] {
     const draft = this.routeService.activeEditDraft();
@@ -787,7 +832,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.activeDirection() === 'ida') {
       return draft.paradas || [];
     } else {
-      return draft.paradasVuelta || draft.paradas || [];
+      return draft.paradasVuelta || [];
     }
   }
 
@@ -808,32 +853,6 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     return polyline.split(';').filter(p => p).length;
   }
 
-  undoLastCoordinate() {
-    const polyline = this.getCurrentPolyline();
-    if (!polyline) return;
-    
-    const coords = polyline.split(';');
-    coords.pop();
-    const newPolyline = coords.join(';');
-    
-    const draft = this.routeService.activeEditDraft();
-    if (!draft) return;
-    
-    const updateData: Partial<Ruta> = { ...draft };
-    
-    if (this.activeDirection() === 'ida') {
-      updateData.polylineIda = newPolyline;
-      this.editPolylineIda = newPolyline;
-    } else {
-      updateData.polylineVuelta = newPolyline;
-      this.editPolylineVuelta = newPolyline;
-    }
-    
-    this.shouldFitBounds = true; // 🔥 Al deshacer, re-ajustar vista
-    this.routeService.updateDraft(updateData);
-    this.onFieldChange();
-  }
-
   // ============================================================
   // FUNCIONES DE COPIA
   // ============================================================
@@ -849,7 +868,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       })),
       polylineVuelta: draft.polylineIda || ''
     };
-    this.shouldFitBounds = true; // 🔥 Al copiar, re-ajustar vista
+    this.shouldFitBounds = true;
     this.routeService.updateDraft(updateData);
   }
 
@@ -868,7 +887,7 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       paradasVuelta: stops,
       polylineVuelta: invertedPolyline
     };
-    this.shouldFitBounds = true; // 🔥 Al invertir, re-ajustar vista
+    this.shouldFitBounds = true;
     this.routeService.updateDraft(updateData);
   }
 
@@ -899,13 +918,13 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       distanciaKm: 3.5,
       duracionMin: 12,
       intervaloMin: 4,
-      sindicatoId: 2,
-      tipoTransporteId: 1,
+      sindicatoId: this.sindicatos.length > 0 ? this.sindicatos[0].id : 2,
+      tipoTransporteId: this.tiposTransporte.length > 0 ? this.tiposTransporte[0].id : 1,
       estado: 'activo',
       versionActual: 1
     };
     
-    this.shouldFitBounds = true; // 🔥 Al cargar demo, re-ajustar vista
+    this.shouldFitBounds = true;
     this.routeService.updateDraft(draft);
     this.editColor = '#3b82f6';
   }
@@ -941,17 +960,6 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ============================================================
-  // CONTROLES DE ZOOM
-  // ============================================================
-  zoomIn() {
-    if (this.map) this.map.zoomIn();
-  }
-
-  zoomOut() {
-    if (this.map) this.map.zoomOut();
-  }
-
-  // ============================================================
   // VALIDACIÓN Y GUARDADO
   // ============================================================
   isValid(): boolean {
@@ -973,40 +981,57 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.editDistanciaKm <= 0) {
       errors.push('La distancia debe ser mayor a 0 km');
     }
+    if (this.getCoordinatesCount() < 2) {
+      errors.push('Debes agregar al menos 2 puntos en el mapa');
+    }
     return errors;
   }
 
-  saveDraft() {
-    if (!this.isValid()) return;
+saveDraft() {
+  if (!this.isValid()) return;
 
-    const draft = this.routeService.activeEditDraft();
-    const now = new Date().toISOString();
+  const draft = this.routeService.activeEditDraft();
 
-    const route: Ruta = {
-      id: draft?.id || Date.now(),
-      sindicatoId: this.editSindicatoId,
-      tipoTransporteId: this.editTipoTransporteId,
-      codigo: this.editCodigo,
-      nombreRuta: this.editNombreRuta,
-      color: this.editColor,
-      polylineIda: this.editPolylineIda,
-      polylineVuelta: this.editPolylineVuelta,
-      distanciaKm: this.editDistanciaKm,
-      duracionMin: this.editDuracionMin,
-      intervaloMin: this.editIntervaloMin,
-      estado: this.editEstado,
-      numeroParadas: (draft?.paradas || []).length,
-      paradas: draft?.paradas || [],
-      paradasVuelta: draft?.paradasVuelta || [],
-      createdAt: draft?.createdAt || now,
-      updatedAt: now,
-      versionActual: draft?.versionActual || 1
-    };
+  const now = new Date().toISOString();
 
-    this.routeService.saveRoute(route);
-    this.gamification.triggerExpGain(4, 'Ruta creada/actualizada');
-    this.router.navigate(['/admin/routes']);
-  }
+  // ✅ La ruta mantiene su estructura original (paradas, paradasVuelta)
+  const route: Ruta = {
+    id: draft?.id || Date.now(),
+    sindicatoId: this.editSindicatoId,
+    tipoTransporteId: this.editTipoTransporteId,
+    codigo: this.editCodigo,
+    nombreRuta: this.editNombreRuta,
+    color: this.editColor,
+    polylineIda: this.editPolylineIda || '',
+    polylineVuelta: this.editPolylineVuelta || '',
+    distanciaKm: this.editDistanciaKm,
+    duracionMin: this.editDuracionMin,
+    intervaloMin: this.editIntervaloMin,
+    estado: this.editEstado,
+    numeroParadas: (draft?.paradas || []).length + (draft?.paradasVuelta || []).length,
+    // ✅ Mantener la estructura original
+    paradas: draft?.paradas || [],
+    paradasVuelta: draft?.paradasVuelta || [],
+    createdAt: draft?.createdAt || now,
+    updatedAt: now,
+    versionActual: draft?.versionActual || 1
+  };
+  console.log("vicovilclca")
+  console.log(route.paradas.length)
+
+  // ✅ saveRoute usará toBackendRutaDto internamente
+  this.routeService.saveRoute(route).subscribe({
+    next: () => {
+      this.gamification.triggerExpGain(4, 'Ruta creada/actualizada');
+      this.router.navigate(['/admin/routes']);
+    },
+    error: (err) => {
+      console.error('Error al guardar ruta:', err);
+      this.gamification.notification.set('❌ Error al guardar la ruta');
+      setTimeout(() => this.gamification.notification.set(''), 3000);
+    }
+  });
+}
 
   onCancel() {
     this.router.navigate(['/admin/routes']);
@@ -1022,25 +1047,6 @@ export class RouteEditorComponent implements OnInit, AfterViewInit, OnDestroy {
       'suspendido': 'Suspendido'
     };
     return labels[estado] || estado;
-  }
-
-  getEstadoClass(estado: string): string {
-    const classes: Record<string, string> = {
-      'activo': 'estado-activo',
-      'mantenimiento': 'estado-mantenimiento',
-      'suspendido': 'estado-suspendido'
-    };
-    return classes[estado] || '';
-  }
-
-  getTipoTransporteNombre(id: number): string {
-    const found = this.tiposTransporte.find(t => t.id === id);
-    return found ? `${found.icon} ${found.nombre}` : `Tipo ${id}`;
-  }
-
-  getSindicatoNombre(id: number): string {
-    const found = this.sindicatos.find(s => s.id === id);
-    return found ? found.nombre : `Sindicato ${id}`;
   }
 
   getHeaderGradient(color: string): string {

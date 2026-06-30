@@ -145,6 +145,7 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   // 10. MÉTODOS DE ACCESO
   // ============================================================
   getStops(): Parada[] {
+    
     const r = this.route();
     const direction = this.activeDirection();
     
