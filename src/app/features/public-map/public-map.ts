@@ -187,7 +187,8 @@ export class PublicMapComponent implements AfterViewInit, OnDestroy {
     const sortedStops = [...stops].sort((a, b) => (a.orden || 0) - (b.orden || 0));
     
     sortedStops.forEach((stop, index) => {
-      const icon = this.createStopIcon(stop.orden || index + 1);
+      // 🔥 PASAR EL COLOR DE LA RUTA A CADA PARADA
+      const icon = this.createStopIcon(stop.orden || index + 1, color);
       const marker = L.marker([stop.latitud, stop.longitud], { icon }).addTo(this.map!);
       
       if (stop.id) {
@@ -270,17 +271,16 @@ private showOrigenMarker(location: { lat: number; lng: number; nombre?: string }
     : '🚶 Origen';
   this.origenMarker.bindPopup(popupContent);
   
-  //this.centerMapBetweenOrigenAndDestino();
-const destinoPos = this.destinoMarker?.getLatLng();
+  const destinoPos = this.destinoMarker?.getLatLng();
 
   if (!destinoPos) {
     console.warn('⚠️ No hay origen y destino para centrar');
     return;
   }
-        this.centerMapOnPositions([
-      { lat: location.lat, lng: location.lng },
-      { lat: destinoPos.lat, lng: destinoPos.lng }
-    ], 50);
+  this.centerMapOnPositions([
+    { lat: location.lat, lng: location.lng },
+    { lat: destinoPos.lat, lng: destinoPos.lng }
+  ], 50);
   
   console.log('✅ Marcador de ORIGEN mostrado:', location.nombre);
 }
@@ -288,26 +288,21 @@ const destinoPos = this.destinoMarker?.getLatLng();
 private centerMapBetweenOrigenAndDestino() {
   if (!this.map) return;
   
-  // Obtener las posiciones
   const origenPos = this.origenMarker?.getLatLng();
   const destinoPos = this.destinoMarker?.getLatLng();
   
-  // Si no hay ambos marcadores, no hacer nada
   if (!origenPos || !destinoPos) {
     console.warn('⚠️ No hay origen y destino para centrar');
     return;
   }
   
-  // Calcular el centro entre ambos puntos
   const centerLat = (origenPos.lat + destinoPos.lat) / 2;
   const centerLng = (origenPos.lng + destinoPos.lng) / 2;
   
-  // Calcular la distancia para ajustar el zoom automáticamente
   const latDiff = Math.abs(origenPos.lat - destinoPos.lat);
   const lngDiff = Math.abs(origenPos.lng - destinoPos.lng);
   const maxDiff = Math.max(latDiff, lngDiff);
   
-  // Ajustar zoom según la distancia
   let zoom = 14;
   if (maxDiff > 0.5) zoom = 11;
   else if (maxDiff > 0.2) zoom = 12;
@@ -317,7 +312,6 @@ private centerMapBetweenOrigenAndDestino() {
   else zoom = 16;
   
   zoom --;
-  // Centrar el mapa con animación
   this.map.setView([centerLat, centerLng], zoom, {
     animate: true,
     duration: 1.5,
@@ -375,11 +369,10 @@ private showDestinoMarker(location: { lat: number; lng: number; nombre?: string 
   }).addTo(this.map);
   
 
-      this.centerMapOnPositions([
-      { lat: location.lat, lng: location.lng }
-    ], 50);
+  this.centerMapOnPositions([
+    { lat: location.lat, lng: location.lng }
+  ], 50);
 
-  // Opcional: Abrir el popup automáticamente
   setTimeout(() => {
     if (this.destinoMarker) {
       this.destinoMarker.openPopup();
@@ -407,7 +400,6 @@ private centerMapOnPositions(positions: { lat: number; lng: number }[], padding:
     return;
   }
 
-  // Si solo hay una posición, centrar con zoom 16
   if (positions.length === 1) {
     this.map.setView([positions[0].lat, positions[0].lng], 16, {
       animate: true,
@@ -418,12 +410,8 @@ private centerMapOnPositions(positions: { lat: number; lng: number }[], padding:
     return;
   }
 
-  // Si hay múltiples posiciones, calcular bounds
   try {
-    // Crear bounds con todas las posiciones
     const bounds = L.latLngBounds(positions.map(p => [p.lat, p.lng]));
-    
-    // Ajustar el mapa a los bounds con padding
     this.map.fitBounds(bounds, {
       padding: [padding, padding],
       maxZoom: 16,
@@ -431,12 +419,12 @@ private centerMapOnPositions(positions: { lat: number; lng: number }[], padding:
       duration: 1.5,
       easeLinearity: 0.25
     });
-    
     console.log(`✅ Mapa centrado en ${positions.length} posiciones`);
   } catch (e) {
     console.warn('⚠️ Error al centrar el mapa:', e);
   }
 }
+
   // ============================================================
   // 🔥 POLYLINE DE LA RUTA SELECCIONADA
   // ============================================================
@@ -518,9 +506,9 @@ private centerMapOnPositions(positions: { lat: number; lng: number }[], padding:
   }
 
   // ============================================================
-  // 🎯 CREACIÓN DE ÍCONO DE PARADA
+  // 🎯 CREACIÓN DE ÍCONO DE PARADA - 🔥 AHORA CON COLOR DINÁMICO
   // ============================================================
-  private createStopIcon(sequence: number): L.DivIcon {
+  private createStopIcon(sequence: number, color: string = '#64748b'): L.DivIcon {
     const size = 28;
     const fontSize = 11;
     
@@ -533,14 +521,14 @@ private centerMapOnPositions(positions: { lat: number; lng: number }[], padding:
               width: ${size}px;
               height: ${size}px;
               border-radius: 50%;
-              border: 2px solid #64748b;
+              border: 3px solid ${color};
               background-color: #ffffff;
               display: flex;
               align-items: center;
               justify-content: center;
               font-size: ${fontSize}px;
               font-weight: 700;
-              color: #1e293b;
+              color: ${color};
               box-shadow: 0 2px 8px rgba(0,0,0,0.15);
               transition: all 0.2s ease;
             "

@@ -2,7 +2,7 @@ import { Component, input, inject, signal, computed, OnInit, effect, OnDestroy, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { Router } from '@angular/router'; // 👈 AGREGAR
+import { Router } from '@angular/router';
 import { RouteService } from '../../../core/services/route.service';
 import { SimulationService } from '../../../core/services/simulation.service';
 import { GamificationService } from '../../../core/services/gamification.service';
@@ -41,7 +41,7 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   readonly routeService = inject(RouteService);
   readonly simulationService = inject(SimulationService);
   readonly gamificationService = inject(GamificationService);
-  private router = inject(Router); // 👈 AGREGAR
+  private router = inject(Router);
 
   // ============================================================
   // 3. ESTADO
@@ -68,7 +68,7 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   });
 
   // ============================================================
-  // 5. MAPA DE TIPOS
+  // 5. MAPA DE TIPOS Y EMOJIS
   // ============================================================
   private readonly transitLabelsMap: Record<number, string> = {
     1: 'Minibús',
@@ -76,6 +76,15 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
     3: 'Teleférico',
     4: 'PumaKatari',
     5: 'Micro'
+  };
+
+  // 👇 EMOJIS DE TRANSPORTE - MÁS VISUALES Y GRATIS
+  private readonly transportEmojis: Record<number, string> = {
+    1: '🚐',  // Minibús
+    2: '🚗',  // Trufi
+    3: '🚠',  // Teleférico
+    4: '🚌',  // PumaKatari
+    5: '🚛'   // Micro
   };
 
   // ============================================================
@@ -145,7 +154,6 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
   // 10. MÉTODOS DE ACCESO
   // ============================================================
   getStops(): Parada[] {
-    
     const r = this.route();
     const direction = this.activeDirection();
     
@@ -234,6 +242,11 @@ export class RouteDetailsComponent implements OnInit, OnDestroy {
       return r.tipoTransporteNombre;
     }
     return this.transitLabelsMap[typeId] || `Tipo ${typeId}`;
+  }
+
+  // 👇 NUEVO MÉTODO PARA OBTENER EMOJI
+  getTransportEmoji(tipoId: number): string {
+    return this.transportEmojis[tipoId] || '🚗';
   }
 
   getEstadoClass(estado: string): string {

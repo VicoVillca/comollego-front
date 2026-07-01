@@ -1,137 +1,116 @@
-<div class="route-details">
+<div class="route-details" [class.collapsed]="!isExpanded()">
 
   <!-- ============================================================ -->
-  <!-- CABECERA DEL CARD (siempre visible)                           -->
+  <!-- HEADER - Siempre visible                                     -->
   <!-- ============================================================ -->
-  <div class="card-header" [style.background]="getHeaderGradient(route().color)">
-    <div class="card-header-left">
-      <span class="card-code" [style.color]="route().color" [style.borderColor]="route().color">
-        {{ route().codigo }}
-      </span>
-      <span class="route-type-tag">{{ getTransitLabel(route().tipoTransporteId) }}</span>
+  <div class="details-header" [style.background]="getHeaderGradient(route().color)">
+    <div class="header-left">
+      <!-- Badge -->
+      <!-- En el badge -->
+<div class="route-badge">
+  <!-- 👇 USAR EMOJI EN VEZ DE ÍCONO -->
+  <span class="transport-emoji">{{ getTransportEmoji(route().tipoTransporteId) }}</span>
+
+</div>
+      
+      <!-- Título (solo visible cuando está expandido) -->
+      <span class="route-title-header">{{ route().nombreRuta }}</span>
+      <span class="route-title-header">{{ route().codigo }}</span>
     </div>
-    <div class="card-header-actions">
-      <button class="icon-btn close" (click)="closeDetails()" title="Cerrar">
+    
+    <div class="header-actions">
+      <!-- Botón expandir/colapsar -->
+      <button class="expand-btn" (click)="toggleExpand()" title="Expandir">
+        <i class="pi" [class.pi-chevron-down]="!isExpanded()" [class.pi-chevron-up]="isExpanded()"></i>
+      </button>
+      
+      <!-- Botón cerrar -->
+      <button class="close-btn" (click)="closeDetails()" title="Cerrar">
         <i class="pi pi-times"></i>
       </button>
     </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- CUERPO DEL CARD                                              -->
+  <!-- CUERPO - Contenido expandido                                 -->
   <!-- ============================================================ -->
-  <div class="card-body">
+  @if (isExpanded()) {
+    <div class="details-body">
+      
+      <!-- Información de la ruta -->
+      <div class="route-info">
+        <div class="sindicato-info">
+          <i class="pi pi-users"></i>
+          <span>{{ getSindicatoName(route().sindicatoId) }}</span>
+        </div>
+        
+        <div class="metrics-row">
+          <div class="metric">
+            <i class="pi pi-clock metric-icon"></i>
+            <span class="metric-value">{{ route().intervaloMin }} min</span>
+          </div>
+          <div class="metric">
+            <i class="pi pi-map-marker metric-icon"></i>
+            <span class="metric-value">{{ route().distanciaKm }} km</span>
+          </div>
+          <div class="metric">
+            <i class="pi pi-hourglass metric-icon"></i>
+            <span class="metric-value">{{ route().duracionMin }} min</span>
+          </div>
+        </div>
+      </div>
 
+      <!-- Sección de paradas -->
+      <div class="stops-section">
+        <div class="stops-header">
+          <span class="stops-title">
+            <i class="pi pi-map-marker"></i>
+            Paradas ({{ getStops().length }})
+          </span>
+          
+          <div class="direction-toggle">
+            <button class="dir-btn" [class.active]="activeDirection() === 'ida'" (click)="onDirectionChange('ida')">
+              <i class="pi pi-arrow-right"></i> Ida
+            </button>
+            <button class="dir-btn" [class.active]="activeDirection() === 'vuelta'" (click)="onDirectionChange('vuelta')">
+              <i class="pi pi-arrow-left"></i> Vuelta
+            </button>
+          </div>
+        </div>
 
-
-    <!-- ========================================================== -->
-    <!-- MODO EXPANDIDO (detalle completo)                           -->
-    <!-- ========================================================== -->
-    @if (isExpanded()) {
-      <div class="expanded-view">
-
-        <!-- HEADER con gradiente -->
-        <div class="route-header" [style.background]="getHeaderGradient(route().color)">
-          <div class="header-content">
-            <h2 class="route-title">{{ route().nombreRuta }}</h2>
-            <div class="sindicato-info">
-              <i class="pi pi-users"></i>
-              <span class="sindicato-nombre">{{ getSindicatoName(route().sindicatoId) }}</span>
-            </div>
-            <div class="route-meta">
-              <span class="meta-tag">{{ getTransitLabel(route().tipoTransporteId) }}</span>
-              <span class="meta-tag estado-badge" [class]="getEstadoClass(route().estado)">
-                {{ route().estado }}
+        <!-- Lista de paradas -->
+        <div class="stops-list">
+          @for (stop of getStops(); track $index) {
+            <div 
+              class="stop-item" 
+              (click)="onStopSelect(stop)" 
+              (mouseenter)="onStopHover(stop)" 
+              (mouseleave)="onStopHover(null)"
+            >
+              <span class="stop-number" [style.borderColor]="route().color" [style.color]="route().color">
+                {{ $index + 1 }}
               </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- MÉTRICAS -->
-        <div class="metrics-grid">
-          <div class="metric-item">
-            <span class="m-label">Frecuencia</span>
-            <div class="m-val"><i class="pi pi-clock"></i> {{ route().intervaloMin }} min</div>
-          </div>
-          <div class="metric-item">
-            <span class="m-label">Distancia</span>
-            <div class="m-val"><i class="pi pi-map-marker"></i> {{ route().distanciaKm }} km</div>
-          </div>
-          <div class="metric-item">
-            <span class="m-label">Duración</span>
-            <div class="m-val"><i class="pi pi-hourglass"></i> {{ route().duracionMin }} min</div>
-          </div>
-        </div>
-
-        <!-- TABS -->
-        <div class="tabs">
-          <button class="tab-btn" [class.active]="activeTab() === 'stops'" (click)="activeTab.set('stops')">
-            <i class="pi pi-map-marker"></i> Paradas ({{ getStops().length }})
-          </button>
-          <button class="tab-btn" [class.active]="activeTab() === 'comments'" (click)="activeTab.set('comments')">
-            <i class="pi pi-comment"></i> Comentarios ({{ comments().length }})
-          </button>
-        </div>
-
-        <!-- CONTENIDO DE TABS -->
-        <div class="scroll-content">
-          <!-- ===== TAB: PARADAS ===== -->
-          @if (activeTab() === 'stops') {
-            <div>
-              <div class="direction-toggle">
-                <button class="dir-btn" [class.active]="activeDirection() === 'ida'" (click)="onDirectionChange('ida')">
-                  <i class="pi pi-arrow-right"></i> Ida (Ir)
-                </button>
-                <button class="dir-btn" [class.active]="activeDirection() === 'vuelta'" (click)="onDirectionChange('vuelta')">
-                  <i class="pi pi-arrow-left"></i> Vuelta (Volver)
-                </button>
-              </div>
+              <span class="stop-name">{{ stop.nombre }}</span>
               
-              @if (getStops().length > 0) {
-                <div class="stops-list-editor-style">
-                  @for (stop of getStops(); track $index) {
-                    <div 
-                      class="stop-item-editor" 
-                      (click)="onStopSelect(stop)" 
-                      (mouseenter)="onStopHover(stop)" 
-                      (mouseleave)="onStopHover(null)"
-                    >
-                      <span class="stop-number-editor">{{ $index + 1 }}</span>
-                      <span class="stop-name-editor">{{ stop.nombre }}</span>
-                      @if ($first) {
-                        <span class="stop-terminal-editor origin">Inicio</span>
-                      }
-                      @if ($last && getStops().length > 1) {
-                        <span class="stop-terminal-editor destination">Final</span>
-                      }
-                      <i class="pi pi-chevron-right stop-arrow-editor"></i>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <div class="empty-state">
-                  <i class="pi pi-map-marker"></i>
-                  <p>Esta ruta no tiene paradas.</p>
-                </div>
+              @if ($first) {
+                <span class="stop-badge origin">Inicio</span>
+              }
+              @if ($last && getStops().length > 1) {
+                <span class="stop-badge destination">Final</span>
               }
             </div>
           }
-
           
+          @if (getStops().length === 0) {
+            <div class="empty-stops">
+              <i class="pi pi-map-marker"></i>
+              <p>Esta ruta no tiene paradas registradas</p>
+            </div>
+          }
         </div>
-
-      </div> <!-- fin expanded-view -->
-    }
-        <!-- ========================================================== -->
-    <!-- MODO COLAPSADO (resumen) – siempre visible al inicio         -->
-    <!-- ========================================================== -->
-    <div class="collapsed-view">
-      <button class="expand-btn" (click)="toggleExpand()">
-        {{ isExpanded() ? 'Ver menos' : 'Ver más' }}
-        <i class="pi" [class.pi-chevron-down]="!isExpanded()" [class.pi-chevron-up]="isExpanded()"></i>
-      </button>
-    </div>
-
-  </div> <!-- fin card-body -->
-
+      </div>
+      
+    </div> <!-- end details-body -->
+  }
+  
 </div>

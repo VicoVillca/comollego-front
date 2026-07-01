@@ -36,7 +36,7 @@ export class AdminLayoutComponent implements OnInit {
   // ============================================================
   menuItems = [
     { id: 'dashboard', icon: 'pi pi-home', label: 'Dashboard' },
-    { id: 'routes', icon: 'pi pi-route', label: 'Rutas' },
+    { id: 'routes', icon: 'pi pi-car', label: 'Rutas' },
     { id: 'sindicatos', icon: 'pi pi-users', label: 'Sindicatos' },
     { id: 'lugares', icon: 'pi pi-map-marker', label: 'Lugares' },
     { id: 'paradas', icon: 'pi pi-stop-circle', label: 'Paradas' },
